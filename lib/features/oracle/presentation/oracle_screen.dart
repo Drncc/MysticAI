@@ -7,7 +7,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:tekno_mistik/core/services/share_service.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
-import 'package:tekno_mistik/features/oracle/presentation/widgets/pulse_data_icon.dart';
+import 'package:tekno_mistik/features/oracle/presentation/widgets/complex_sigil.dart';
 
 class OracleScreen extends ConsumerStatefulWidget {
   const OracleScreen({super.key});
@@ -55,7 +55,9 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
               Expanded(
                 flex: 2,
                 child: Center(
-                  child: PulseDataIcon(isThinking: oracleState.isLoading),
+                  child: oracleState.isLoading 
+                    ? const TheComplexSigil(size: 220).animate(onPlay: (c) => c.repeat()).shimmer(duration: 1.seconds, color: AppTheme.neonCyan) 
+                    : const TheComplexSigil(size: 220),
                 ),
               ),
 
