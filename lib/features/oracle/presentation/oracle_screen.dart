@@ -7,6 +7,7 @@ import 'package:screenshot/screenshot.dart';
 import 'package:tekno_mistik/core/services/share_service.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
+import 'package:tekno_mistik/features/oracle/presentation/widgets/pulse_data_icon.dart';
 
 class OracleScreen extends ConsumerStatefulWidget {
   const OracleScreen({super.key});
@@ -36,12 +37,14 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     super.dispose();
   }
 
+// ... (imports remain)
+
   @override
   Widget build(BuildContext context) {
     final oracleState = ref.watch(oracleNotifierProvider);
 
     return Scaffold(
-      backgroundColor: AppTheme.deepBlack,
+      backgroundColor: Colors.transparent, // Transparent for LivingBackground
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -52,39 +55,7 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
               Expanded(
                 flex: 2,
                 child: Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                       // Glow
-                       Container(
-                         width: 200, height: 200,
-                         decoration: BoxDecoration(
-                           shape: BoxShape.circle,
-                           boxShadow: [
-                             BoxShadow(
-                               color: AppTheme.neonCyan.withValues(alpha: 0.2),
-                               blurRadius: 50, 
-                               spreadRadius: 10
-                             )
-                           ]
-                         ),
-                       ).animate(onPlay: (c) => c.repeat(reverse: true))
-                        .scale(begin: const Offset(0.8, 0.8), end: const Offset(1.2, 1.2), duration: 2.seconds),
-
-                       // Core Logic
-                       if (oracleState.isLoading)
-                          const SizedBox(
-                            width: 150, height: 150,
-                            child: CircularProgressIndicator(color: AppTheme.neonCyan, strokeWidth: 1),
-                          )
-                        else
-                          Icon(
-                            Icons.remove_red_eye_outlined,
-                            size: 80,
-                            color: AppTheme.neonCyan.withValues(alpha: 0.8),
-                          ).animate().fadeIn(),
-                    ],
-                  ),
+                  child: PulseDataIcon(isThinking: oracleState.isLoading),
                 ),
               ),
 

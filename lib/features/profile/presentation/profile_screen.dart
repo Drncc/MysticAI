@@ -7,20 +7,138 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/dashboard/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/history_provider.dart';
+import 'package:tekno_mistik/core/utils/zodiac_calculator.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final historyAsync = ref.watch(historyNotifierProvider);
-    
-    // Fetch user profile data locally or from Supabase (for simplicity, using a FutureBuilder here for biometrics)
-    // Ideally this should also be in a provider.
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _isLoading = true;
+  Map<String, dynamic> _bioMetrics = {};
+  
+  // Cosmic Data
+  DateTime? _birthDate;
+  String _zodiacSign = "";
+  bool _cosmicEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final data = await Supabase.instance.client
+          .from('profiles')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+
+      if (data != null) {
+        final bio = data['bio_metrics'] as Map<String, dynamic>? ?? {};
+        setState(() {
+          _bioMetrics = bio;
+          
+          if (bio['birth_date'] != null) {
+            _birthDate = DateTime.tryParse(bio['birth_date']);
+            if (_birthDate != null) {
+              _zodiacSign = getZodiacSign(_birthDate!);
+            }
+          }
+          _cosmicEnabled = bio['cosmic_enabled'] ?? false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Profile Fetch Error: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveCosmicData() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    try {
+      final updatedBio = Map<String, dynamic>.from(_bioMetrics);
+      if (_birthDate != null) {
+        updatedBio['birth_date'] = _birthDate!.toIso8601String();
+        updatedBio['zodiac_sign'] = _zodiacSign;
+      }
+      updatedBio['cosmic_enabled'] = _cosmicEnabled;
+
+      await Supabase.instance.client.from('profiles').update({
+        'bio_metrics': updatedBio,
+      }).eq('id', userId);
+
+      setState(() {
+        _bioMetrics = updatedBio;
+      });
+
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("Kozmik Veriler Güncellendi"), backgroundColor: AppTheme.neonCyan),
+         );
+      }
+    } catch (e) {
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text("Hata: $e"), backgroundColor: AppTheme.errorRed),
+         );
+       }
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.dark(
+              primary: AppTheme.neonPurple,
+              onPrimary: Colors.white,
+              surface: AppTheme.deepBlack,
+              onSurface: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _birthDate) {
+      setState(() {
+        _birthDate = picked;
+        _zodiacSign = getZodiacSign(picked);
+      });
+      _saveCosmicData(); // Auto save on change
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final historyAsync = ref.watch(historyNotifierProvider);
+
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(child: CircularProgressIndicator(color: AppTheme.neonCyan)),
+      );
+    }
 
     return Scaffold(
-      backgroundColor: AppTheme.deepBlack,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -35,27 +153,73 @@ class ProfileScreen extends ConsumerWidget {
               
               const SizedBox(height: 20),
 
-              // Biometrics Section (FutureBuilder for single fetch)
-              FutureBuilder(
-                future: Supabase.instance.client.from('profiles').select().eq('id', userId!).single(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    final data = snapshot.data as Map<String, dynamic>;
-                    final bio = data['bio_metrics'] ?? {};
-                    return GlassCard(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildBioItem("YAŞ", bio['age']?.toString() ?? "--"),
-                          _buildBioItem("BOY", "${bio['height'] ?? '--'} cm"),
-                          _buildBioItem("KÜTLE", "${bio['weight'] ?? '--'} kg"),
-                        ],
-                      ),
-                    ).animate().fadeIn(duration: 600.ms);
-                  }
-                  return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator(color: AppTheme.neonCyan)));
-                },
-              ),
+              // COSMIC DATA CARD (NEW)
+              GlassCard(
+                borderColor: AppTheme.neonPurple.withValues(alpha: 0.5),
+                child: Column(
+                  children: [
+                     Row(
+                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                       children: [
+                         Text("KOZMİK ANALİZ", style: GoogleFonts.orbitron(color: AppTheme.neonPurple, fontSize: 12)),
+                         Switch(
+                           value: _cosmicEnabled,
+                           activeColor: AppTheme.neonPurple,
+                           onChanged: (val) {
+                             setState(() => _cosmicEnabled = val);
+                             _saveCosmicData();
+                           },
+                         )
+                       ],
+                     ),
+                     const Divider(color: Colors.white12),
+                     GestureDetector(
+                       onTap: () => _selectDate(context),
+                       child: Row(
+                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                         children: [
+                           Column(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               const Text("DOĞUM TARİHİ", style: TextStyle(color: Colors.white38, fontSize: 10)),
+                               Text(
+                                 _birthDate == null 
+                                   ? "Seçilmedi" 
+                                   : "${_birthDate!.day}.${_birthDate!.month}.${_birthDate!.year}",
+                                 style: const TextStyle(color: Colors.white, fontSize: 16),
+                               ),
+                             ],
+                           ),
+                           Column(
+                             crossAxisAlignment: CrossAxisAlignment.end,
+                             children: [
+                               const Text("BURÇ", style: TextStyle(color: Colors.white38, fontSize: 10)),
+                               Text(
+                                 _zodiacSign.isEmpty ? "--" : _zodiacSign,
+                                 style: const TextStyle(color: AppTheme.neonCyan, fontSize: 16, fontWeight: FontWeight.bold),
+                               ),
+                             ],
+                           ),
+                         ],
+                       ),
+                     ),
+                  ],
+                ),
+              ).animate().fadeIn(duration: 800.ms),
+
+              const SizedBox(height: 20),
+
+              // Biometrics Section (Read Only here, updated in onboarding)
+              GlassCard(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildBioItem("YAŞ", _bioMetrics['age']?.toString() ?? "--"),
+                    _buildBioItem("BOY", "${_bioMetrics['height'] ?? '--'} cm"),
+                    _buildBioItem("KÜTLE", "${_bioMetrics['weight'] ?? '--'} kg"),
+                  ],
+                ),
+              ).animate().fadeIn(duration: 600.ms),
 
               const SizedBox(height: 30),
               
@@ -123,22 +287,15 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               
               // System Control
-              Text("SİSTEM KONTROLÜ", style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppTheme.errorRed)),
-              const SizedBox(height: 10),
               GlassCard(
                 borderColor: AppTheme.errorRed.withValues(alpha: 0.5),
                 child: InkWell(
                   onTap: () async {
-                    // Haptic Feedback
                     await HapticFeedback.mediumImpact();
-                    
-                    // Logout Logic
                     await Supabase.instance.client.auth.signOut();
-                    
-                    // Navigate to Onboarding (Hard Reset)
                     if (context.mounted) {
                       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
                     }
@@ -154,13 +311,6 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Center(
-                 child: Text(
-                   "Sürüm v1.0 (BETA) // TEKNO_MISTIK",
-                   style: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 10),
-                 ),
-              ),
-              const SizedBox(height: 40),
             ],
           ),
         ),

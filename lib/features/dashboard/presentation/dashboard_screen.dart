@@ -9,6 +9,7 @@ import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/dashboard/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/features/oracle/presentation/oracle_screen.dart';
 import 'package:tekno_mistik/features/profile/presentation/profile_screen.dart';
+import 'package:tekno_mistik/features/dashboard/presentation/widgets/living_background.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -29,37 +30,47 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.deepBlack,
-      bottomNavigationBar: NavigationBar(
-        backgroundColor: AppTheme.surfaceDark,
-        indicatorColor: AppTheme.neonCyan.withValues(alpha: 0.2),
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppTheme.neonCyan),
-            label: 'Veri Akışı',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.psychology_outlined),
-             selectedIcon: Icon(Icons.psychology, color: AppTheme.neonCyan),
-            label: 'Oracle',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-             selectedIcon: Icon(Icons.settings, color: AppTheme.neonCyan),
-            label: 'Protokol',
-          ),
-        ],
+      backgroundColor: Colors.transparent, // Transparent for LivingBackground
+      extendBody: true, // Navigation bar flows over background
+      body: LivingBackground(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _pages[_currentIndex],
+        ),
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _pages[_currentIndex],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: AppTheme.deepSpace.withValues(alpha: 0.85), // Semi-transparent nav bar
+          border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+        ),
+        child: NavigationBar(
+          backgroundColor: Colors.transparent,
+          indicatorColor: AppTheme.neonCyan.withValues(alpha: 0.2),
+          elevation: 0,
+          selectedIndex: _currentIndex,
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.dashboard_outlined),
+              selectedIcon: Icon(Icons.dashboard, color: AppTheme.neonCyan),
+              label: 'Veri Akışı',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.psychology_outlined),
+              selectedIcon: Icon(Icons.psychology, color: AppTheme.neonCyan),
+              label: 'Oracle',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings, color: AppTheme.neonCyan),
+              label: 'Protokol',
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -70,7 +70,14 @@ KIRMIZI ÇİZGİLER VE GÜVENLİK (MUTLAK KURALLAR):
       final profileData = await _fetchUserProfile(userId);
       final systemPrompt = _buildSystemPrompt(profileData);
       
-      const userPrompt = "Bugün için kısa, motive edici, siber-felsefi bir tavsiye ver (tek cümle).";
+      String userPrompt = "Bugün için kısa, motive edici, siber-felsefi bir tavsiye ver (tek cümle).";
+      
+      // Cosmic Injection
+      if (profileData['cosmic_enabled'] == true) {
+         final zodiac = profileData['zodiac_sign'] ?? "Bilinmiyor";
+         final date = DateTime.now().toString().split(' ')[0];
+         userPrompt += "\n[KOZMİK ANALİZ AKTİF]: Kullanıcının burcu: $zodiac. Bugünün tarihi: $date. Gezegen hareketlerini ve burç etkilerini yoruma mistik bir dille yedir.";
+      }
       
       final message = await _callGroqApi(userPrompt, systemPrompt);
 
@@ -99,7 +106,16 @@ KIRMIZI ÇİZGİLER VE GÜVENLİK (MUTLAK KURALLAR):
       }
 
       final systemPrompt = _buildSystemPrompt(profileData);
-      return await _callGroqApi(userQuestion, systemPrompt);
+      
+      String prompt = userQuestion;
+       // Cosmic Injection
+      if (profileData['cosmic_enabled'] == true) {
+         final zodiac = profileData['zodiac_sign'] ?? "Bilinmiyor";
+         final date = DateTime.now().toString().split(' ')[0];
+         prompt += "\n[KOZMİK BAĞLAM]: Kullanıcının burcu: $zodiac. Tarih: $date. Kozmik enerjileri cevaba yansıt.";
+      }
+
+      return await _callGroqApi(prompt, systemPrompt);
 
     } catch (e) {
       return "Sistem aşırı yüklendi. [ERROR: $e]";
