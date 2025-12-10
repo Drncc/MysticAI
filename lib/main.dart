@@ -1,53 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tekno_mistik/core/router/app_router.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
+import 'package:tekno_mistik/features/onboarding/presentation/onboarding_screen.dart';
+import 'package:tekno_mistik/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:tekno_mistik/core/config/env_config.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables from .env file
-  await dotenv.load(fileName: '.env');
+  // Load from Config Class
+  const supabaseUrl = EnvConfig.supabaseUrl;
+  const supabaseAnonKey = EnvConfig.supabaseAnonKey;
 
-  // Get Supabase credentials from .env
-  final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
-
-  if (supabaseUrl == null || supabaseAnonKey == null) {
-    throw Exception(
-      'Supabase credentials not found in .env file. '
-      'Please ensure SUPABASE_URL and SUPABASE_ANON_KEY are set.',
-    );
+  if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
+      await Supabase.initialize(
+        url: supabaseUrl,
+        anonKey: supabaseAnonKey,
+      );
+      debugPrint("SUPABASE INITIALIZED: $supabaseUrl");
+  } else {
+      debugPrint("CRITICAL ERROR: Supabase keys are missing in config!");
   }
 
-  // Initialize Supabase
-  await Supabase.initialize(
-    url: supabaseUrl,
-    anonKey: supabaseAnonKey,
-    debug: false, // Set to true for development debugging
-  );
-
-  runApp(
-    const ProviderScope(
-      child: TeknoMistikApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
-/// Main Application Widget
-class TeknoMistikApp extends StatelessWidget {
-  const TeknoMistikApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
+    return MaterialApp(
       title: 'Tekno-Mistik',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      routerConfig: appRouter,
+      home: _getInitialScreen(),
     );
   }
-}
 
+  Widget _getInitialScreen() {
+    final session = Supabase.instance.client.auth.currentSession;
+    // Check if user has a profile (conceptually). For now just session check.
+    // In a real app we might fetch profile to confirm onboarding is done.
+    if (session != null) {
+      return const DashboardScreen();
+    }
+    return const OnboardingScreen();
+  }
+}

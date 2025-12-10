@@ -1,195 +1,263 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:tekno_mistik/core/theme/app_theme.dart';
-import 'package:tekno_mistik/features/onboarding/controllers/onboarding_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:tekno_mistik/features/onboarding/presentation/providers/onboarding_provider.dart';
+import 'package:tekno_mistik/features/dashboard/presentation/dashboard_screen.dart';
 
-class OnboardingScreen extends ConsumerWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(onboardingControllerProvider);
-    final neon = Theme.of(context).colorScheme.primary;
-
-    return Scaffold(
-      backgroundColor: AppTheme.deepBlack,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Sistem Başlatılıyor',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: neon,
-                        letterSpacing: 1.2,
-                      ),
-                ).animate().fadeIn(duration: 400.ms, curve: Curves.easeOut),
-                const SizedBox(height: 12),
-                Text(
-                  'Biyo-dijital parametreler toplanıyor. Algoritmik akış için kendini tanımla.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ).animate().fadeIn(duration: 450.ms, curve: Curves.easeOut),
-                const SizedBox(height: 24),
-
-                // Step 1: Name
-                _GlitchCard(
-                  title: 'Birim Kimliği',
-                  subtitle: 'Identify Biological Unit',
-                  child: TextField(
-                    onChanged: (v) =>
-                        ref.read(onboardingControllerProvider.notifier).setName(v),
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    decoration: const InputDecoration(
-                      labelText: 'İsim / Kod Adı',
-                      hintText: 'Örnek: Kuantum Gezgin',
-                    ),
-                  ),
-                ).animate().fadeIn(duration: 500.ms, curve: Curves.easeOut),
-                const SizedBox(height: 16),
-
-                // Step 2: Age & Height
-                _GlitchCard(
-                  title: 'Biyo-Metrik Vektörler',
-                  subtitle: 'Input Temporal Cycles & Vertical Metric',
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          keyboardType: TextInputType.number,
-                          onChanged: (v) => ref
-                              .read(onboardingControllerProvider.notifier)
-                              .setAge(int.tryParse(v)),
-                          decoration: const InputDecoration(
-                            labelText: 'Yaş',
-                            hintText: 'Temporal Cycles',
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextField(
-                          keyboardType: TextInputType.number,
-                          onChanged: (v) => ref
-                              .read(onboardingControllerProvider.notifier)
-                              .setHeight(int.tryParse(v)),
-                          decoration: const InputDecoration(
-                            labelText: 'Boy (cm)',
-                            hintText: 'Vertical Metric',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(duration: 550.ms, curve: Curves.easeOut),
-                const SizedBox(height: 16),
-
-                // Step 3: Astrology toggle
-                _GlitchCard(
-                  title: 'Kozmik Veri Bağı',
-                  subtitle: 'Enable Cosmic Data Link?',
-                  child: SwitchListTile(
-                    value: state.isAstrologyEnabled,
-                    onChanged: (v) => ref
-                        .read(onboardingControllerProvider.notifier)
-                        .toggleAstrology(v),
-                    title: const Text('Kozmik hizalanma sinyallerini işleme'),
-                    subtitle: const Text(
-                        'Entropi ve rezonans analizi için ek veri vektörleri'),
-                    activeColor: neon,
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ).animate().fadeIn(duration: 600.ms, curve: Curves.easeOut),
-                const SizedBox(height: 24),
-
-                // Step 4: Initialize button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      final errors = _validate(state);
-                      if (errors.isNotEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(errors.join('\n'))),
-                        );
-                        return;
-                      }
-                      context.go('/dashboard');
-                    },
-                    child: const Text('Sistemi Başlat'),
-                  ),
-                ).animate().fadeIn(duration: 650.ms, curve: Curves.easeOut),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<String> _validate(OnboardingState state) {
-    final errors = <String>[];
-    if (state.name.isEmpty) {
-      errors.add('Birim kimliği gerekli.');
-    }
-    if (state.age == null || state.age! <= 0) {
-      errors.add('Temporal cycle (yaş) geçerli değil.');
-    }
-    if (state.height == null || state.height! <= 0) {
-      errors.add('Vertical metric (boy) geçerli değil.');
-    }
-    return errors;
-  }
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _GlitchCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget child;
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _ageController = TextEditingController();
+  final _heightController = TextEditingController();
+  final _weightController = TextEditingController();
 
-  const _GlitchCard({
-    required this.title,
-    required this.subtitle,
-    required this.child,
-  });
+  @override
+  void dispose() {
+    _ageController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onInitialize() async {
+    if (_formKey.currentState!.validate()) {
+      HapticFeedback.heavyImpact();
+      
+      final state = ref.read(onboardingNotifierProvider);
+      
+      await ref.read(onboardingControllerProvider.notifier).initializeSystem(
+        age: state.age!,
+        height: state.height!,
+        weight: state.weight!,
+      );
+
+      if (uploaded && mounted) {
+           Navigator.of(context).pushReplacement(
+             MaterialPageRoute(builder: (_) => const DashboardScreen()),
+           );
+      }
+    } else {
+      HapticFeedback.vibrate();
+    }
+  }
+
+  bool get isLoading => ref.watch(onboardingControllerProvider).isLoading;
+  bool get uploaded => !isLoading && !ref.read(onboardingControllerProvider).hasError;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: AppTheme.darkGray,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: const BorderSide(color: AppTheme.neonPurpleDark, width: 1.2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppTheme.neonPurpleLight,
-                  ),
+    final theme = Theme.of(context);
+    final provider = ref.watch(onboardingNotifierProvider);
+    final notifier = ref.read(onboardingNotifierProvider.notifier);
+    final controller = ref.watch(onboardingControllerProvider);
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          // Cyberpunk Grid Background Effect (Simplified)
+          Positioned.fill(
+            child: CustomPaint(
+              painter: GridPainter(color: theme.colorScheme.primary.withValues(alpha: 0.05)),
             ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: AppTheme.textSecondary),
+          ),
+          
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 40),
+                    // Header Glitch Animation
+                    Text(
+                      "SİSTEM BAŞLATILIYOR...",
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        letterSpacing: 2,
+                      ),
+                    ).animate(onPlay: (controller) => controller.repeat())
+                     .shimmer(duration: 2.seconds, color: Colors.white)
+                     .then(delay: 5.seconds),
+
+                    const SizedBox(height: 20),
+                    
+                    Text(
+                      "BİYOMETRİK\nDOĞRULAMA",
+                      style: theme.textTheme.displayLarge,
+                    ).animate()
+                     .fadeIn(duration: 800.ms)
+                     .slideX(begin: -0.2, end: 0, curve: Curves.easeOutExpo),
+
+                     const SizedBox(height: 10),
+                     Text(
+                       "Somatik veri girişi gereklidir. Bu veriler dijital yansımanızı kalibre etmek için kullanılacaktır.",
+                       style: theme.textTheme.bodyMedium,
+                     ).animate().fadeIn(delay: 400.ms),
+
+                    const SizedBox(height: 60),
+
+                    // Inputs with terminal aesthetics
+                    _buildTerminalInput(
+                      controller: _ageController,
+                      label: "KRONOLOJİK YAŞ",
+                      hint: "Örn: 25",
+                      onChanged: notifier.updateAge,
+                      theme: theme,
+                      delay: 600.ms
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTerminalInput(
+                      controller: _heightController,
+                      label: "DİKEY UZUNLUK (CM)",
+                      hint: "Örn: 175",
+                      onChanged: notifier.updateHeight,
+                      theme: theme,
+                      delay: 800.ms
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTerminalInput(
+                      controller: _weightController,
+                      label: "KÜTLE (KG)",
+                      hint: "Örn: 70",
+                      onChanged: notifier.updateWeight,
+                      theme: theme,
+                      delay: 1000.ms
+                    ),
+
+                    const SizedBox(height: 60),
+
+                    // System Initialize Button
+                    ElevatedButton(
+                      onPressed: (isLoading || !provider.isValid)
+                          ? null
+                          : () {
+                              HapticFeedback.mediumImpact();
+                              _onInitialize();
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: provider.isValid 
+                            ? theme.colorScheme.primary 
+                            : theme.colorScheme.surface,
+                        foregroundColor: provider.isValid 
+                            ? Colors.black 
+                            : Colors.white.withOpacity(0.3),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (ref.watch(onboardingControllerProvider).isLoading)
+                             const SizedBox(
+                               height: 20, 
+                               width: 20, 
+                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
+                             )
+                          else ...[
+                            if (provider.isValid) 
+                              const Icon(Icons.power_settings_new, size: 20).animate(onPlay: (c) => c.repeat(reverse: true)).fadeIn(duration: 500.ms),
+                            if (provider.isValid) const SizedBox(width: 10),
+                            const Text("SİSTEMİ BAŞLAT"),
+                          ]
+                        ],
+                      ),
+                    ).animate()
+                     .fadeIn(delay: 1200.ms)
+                     .scale(duration: 400.ms, curve: Curves.elasticOut),
+                     
+                     if (ref.watch(onboardingControllerProvider).hasError)
+                       Padding(
+                         padding: const EdgeInsets.only(top: 20),
+                         child: Text(
+                           "BAĞLANTI HATASI: ${ref.watch(onboardingControllerProvider).error}",
+                           textAlign: TextAlign.center,
+                           style: TextStyle(color: theme.colorScheme.error),
+                         ).animate().fadeIn(),
+                       ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildTerminalInput({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required Function(String) onChanged,
+    required ThemeData theme,
+    required Duration delay,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "> $label",
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.primary.withValues(alpha: 0.8),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          onChanged: onChanged,
+          keyboardType: TextInputType.number,
+          style: GoogleFonts.jetBrainsMono(
+            color: Colors.white, 
+            fontWeight: FontWeight.bold,
+            fontSize: 18
+          ),
+          cursorColor: theme.colorScheme.primary,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixText: "_ ",
+            prefixStyle: TextStyle(color: theme.colorScheme.primary),
+            suffixIcon: Icon(Icons.data_array, color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+          ),
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'VERİ GİRİŞİ ZORUNLUDUR';
+            if (int.tryParse(value) == null) return 'HATALI VERİ TİPİ';
+            return null;
+          },
+        ),
+      ],
+    ).animate().fadeIn(delay: delay).slideY(begin: 0.2, end: 0);
+  }
 }
 
+class GridPainter extends CustomPainter {
+  final Color color;
+  GridPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+
+    // Vertical lines
+    for (double i = 0; i < size.width; i += 40) {
+      canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
+    }
+
+    // Horizontal lines
+    for (double i = 0; i < size.height; i += 40) {
+      canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}

@@ -26,10 +26,9 @@ class ProfileNotifier extends AsyncNotifier<AppProfile?> {
           .from('profiles')
           .select()
           .eq('id', userId)
-          .single()
-          .execute();
+          .single();
 
-      final data = response.data as Map<String, dynamic>?;
+      final data = response;
 
       if (data != null) {
         // Note: JSON deserialization using generated factory methods
@@ -76,8 +75,7 @@ class ProfileNotifier extends AsyncNotifier<AppProfile?> {
           .from('profiles')
           .upsert(newProfileData, onConflict: 'id')
           .select()
-          .single()
-          .execute();
+          .single();
       
       // Refresh state after successful save
       state = AsyncValue.data(await fetchProfile());

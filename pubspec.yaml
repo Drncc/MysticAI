@@ -34,6 +34,10 @@ dependencies:
 
   # Environment Variables
   flutter_dotenv: ^5.1.0
+  google_generative_ai: ^0.4.7
+  share_plus: ^12.0.1
+  path_provider: ^2.1.5
+  screenshot: ^3.0.0
 
 dev_dependencies:
   flutter_test:
@@ -44,10 +48,23 @@ dev_dependencies:
   build_runner: ^2.4.8
   riverpod_generator: ^2.3.9
   json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.7
 
 flutter:
   uses-material-design: true
 
   assets:
     - .env
+    - assets/
+
+flutter_icons:
+  android: false
+  ios: false
+  windows:
+    generate: true
+    icon_path: "assets/icon.png"
+    icon_size: 256
+  image_path: "assets/icon.png"
+
 

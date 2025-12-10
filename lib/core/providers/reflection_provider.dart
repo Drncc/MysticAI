@@ -33,10 +33,9 @@ class ReflectionNotifier extends AsyncNotifier<List<Reflection>> {
           .from('reflections')
           .select()
           .eq('user_id', userId)
-          .order('created_at', ascending: false)
-          .execute();
+          .order('created_at', ascending: false);
 
-      final List<dynamic> rawList = response.data as List<dynamic>? ?? [];
+      final List<dynamic> rawList = response as List<dynamic>? ?? [];
       
       // Deserialize list. We must handle the complex jsonb fields carefully during deserialization 
       // in a real-world scenario, but here we map them directly, relying on generated toJson/fromJson 
@@ -88,8 +87,7 @@ class ReflectionNotifier extends AsyncNotifier<List<Reflection>> {
             .from('reflections')
             .insert(newReflectionData)
             .select()
-            .single()
-            .execute();
+            .single();
         
         // 4. Refresh state (fetch all again or update list locally)
         state = AsyncValue.data(await fetchReflections());
