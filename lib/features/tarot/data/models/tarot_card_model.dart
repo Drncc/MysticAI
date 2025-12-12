@@ -2,27 +2,27 @@ import 'dart:math';
 
 class TarotCard {
   final int id;
-  final String name;
-  final String codeName;
+  final String codeName; // Dosya ismi referansı (Örn: 'fool', 'theempress')
+  final String nameTr;   // Ekranda görünecek isim (Örn: 'Deli', 'İmparatoriçe')
   final int variantCount;
   final String meaning;
+  
+  // Eski 'name' parametresini 'nameTr' ile değiştiriyoruz veya 'name' getter'ı ekliyoruz uyumluluk için.
+  // Projenin geri kalanında .name kullanılıyorsa getter kullanmak mantıklı.
+  String get name => nameTr;
 
-  const TarotCard({
+  TarotCard({
     required this.id,
-    required this.name,
     required this.codeName,
-    required this.variantCount,
-    required this.meaning,
+    required this.nameTr,
+    this.variantCount = 3,
+    this.meaning = '',
   });
 
-  /// Generates a random image path from available variants
-  /// Format: assets/tarot/{id}_{codeName}_{1..variantCount}.jpg
+  // Getter: Rastgele Resim Yolu Oluşturucu
+  // Dosya formatı: assets/tarot/{id}_{codeName}_{variant}.jpg
   String get randomImagePath {
-    if (variantCount <= 1) {
-      return 'assets/tarot/${id}_${codeName}_1.jpg';
-    }
-    final randomInfo = Random();
-    final variant = randomInfo.nextInt(variantCount) + 1; // 1 to variantCount
-    return 'assets/tarot/${id}_${codeName}_$variant.jpg';
+    final randomVariant = Random().nextInt(variantCount) + 1; 
+    return 'assets/tarot/${id}_${codeName}_$randomVariant.jpg';
   }
 }
