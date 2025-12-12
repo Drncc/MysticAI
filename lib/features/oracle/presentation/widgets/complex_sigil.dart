@@ -36,10 +36,10 @@ class _TheComplexSigilState extends State<TheComplexSigil> with TickerProviderSt
       duration: const Duration(seconds: 60),
     )..repeat();
 
-    // 2. Web: Medium CCW (30s)
+    // 2. Web: Medium CCW (5s) - Warp Speed
     _webController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 30),
+      duration: const Duration(seconds: 5),
     )..repeat(reverse: false); 
 
     // 3. Pulse: Subtle breathing (4s)
@@ -259,8 +259,9 @@ class CentralEyePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final eyeWidth = size.width * 0.7;
-    final eyeHeight = size.height * 0.35;
+    // Scaled down by 0.6x as requested
+    final eyeWidth = size.width * 0.7 * 0.6;
+    final eyeHeight = size.height * 0.35 * 0.6;
     
     final paint = Paint()
       ..color = kSigilCyan
@@ -306,7 +307,8 @@ class PupilPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     
     // Diamond Core
-    final pupilSize = 6.0; // Renamed from size to pupilSize to avoid shadowing
+    // Diamond Core - Scaled down
+    final pupilSize = 6.0 * 0.6; // Renamed from size to pupilSize to avoid shadowing
     final path = Path();
     path.moveTo(center.dx, center.dy - pupilSize);
     path.lineTo(center.dx + pupilSize, center.dy);
@@ -326,9 +328,10 @@ class PupilPainter extends CustomPainter {
     );
     
     // Scanning Ray
+    // Scanning Ray - Scaled
     canvas.drawLine(
-        Offset(center.dx, center.dy - 15),
-        Offset(center.dx, center.dy + 15),
+        Offset(center.dx, center.dy - 9),
+        Offset(center.dx, center.dy + 9),
         Paint()..color = kSigilCyan.withValues(alpha: 0.6)..strokeWidth=1
     );
   }

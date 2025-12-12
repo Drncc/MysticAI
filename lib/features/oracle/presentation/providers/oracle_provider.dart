@@ -1,5 +1,4 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tekno_mistik/core/services/oracle_service.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/history_provider.dart';
@@ -15,11 +14,11 @@ class OracleNotifier extends _$OracleNotifier {
     return const AsyncValue.data(null);
   }
 
-  Future<void> seekGuidance(String prompt) async {
+  Future<void> seekGuidance(String prompt, {bool isPremium = false}) async {
     state = const AsyncValue.loading();
     try {
       // 1. Get Guidance from Service
-      final response = await _oracleService.getOracleGuidance(prompt);
+      final response = await _oracleService.getOracleGuidance(prompt, isPremium: isPremium);
       
       // 2. Save to Supabase
       final supabase = Supabase.instance.client;

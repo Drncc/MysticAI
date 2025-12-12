@@ -10,6 +10,10 @@ import 'package:tekno_mistik/features/dashboard/presentation/widgets/glass_card.
 import 'package:tekno_mistik/features/oracle/presentation/oracle_screen.dart';
 import 'package:tekno_mistik/features/profile/presentation/profile_screen.dart';
 import 'package:tekno_mistik/features/dashboard/presentation/widgets/living_background.dart';
+import 'package:tekno_mistik/features/tarot/data/tarot_deck.dart';
+import 'package:tekno_mistik/features/tarot/presentation/widgets/mystic_tarot_card.dart';
+import 'package:tekno_mistik/features/tarot/services/tarot_service.dart';
+import 'dart:math';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -85,6 +89,82 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   final _screenshotController = ScreenshotController();
+
+  Future<void> _showCardRitual(BuildContext context) async {
+      // 1. Get Card from Service (Memory Logic)
+      final selection = await TarotService().drawDailyCard();
+      final card = selection.card;
+      final variantId = selection.variantId;
+      
+      if (!mounted) return;
+
+      // 2. Random Neon Color
+      final random = Random();
+      final List<Color> neonColors = [
+        AppTheme.neonCyan, 
+        AppTheme.neonPurple, 
+        AppTheme.errorRed, 
+        Colors.amberAccent
+      ];
+      final glowColor = neonColors[random.nextInt(neonColors.length)];
+
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: "Ritual",
+        barrierColor: Colors.black.withOpacity(0.9),
+        transitionDuration: const Duration(milliseconds: 800),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return Center(
+            child: Material(
+              color: Colors.transparent,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                   Text(
+                     "KOZMİK YANSIMA", 
+                     style: AppTheme.orbitronStyle.copyWith(
+                       color: glowColor, 
+                       fontSize: 24, 
+                       shadows: [Shadow(color: glowColor, blurRadius: 20)]
+                     )
+                   ).animate().fadeIn(duration: 1.seconds),
+                   const SizedBox(height: 30),
+                   
+                   SizedBox(
+                     width: 280,
+                     height: 480,
+                     child: MysticTarotCard(
+                       card: card,
+                       isRevealed: true, // Start revealed
+                       glowColor: glowColor,
+                       overrideVariantId: variantId, // Use specific variant from memory
+                       onTap: () => Navigator.of(context).pop(),
+                     ),
+                   ).animate()
+                    .scale(duration: 800.ms, curve: Curves.easeOutBack)
+                    .shimmer(duration: 2.seconds, delay: 1.seconds),
+                   
+                   const SizedBox(height: 30),
+                   
+                   Text(
+                     "\"${card.meaning}\"",
+                     textAlign: TextAlign.center,
+                     style: AppTheme.interStyle.copyWith(
+                       color: Colors.white70,
+                       fontStyle: FontStyle.italic
+                     ),
+                   ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
+                ],
+              ),
+            ),
+          );
+        },
+        transitionBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -256,6 +336,29 @@ class _DashboardViewState extends State<DashboardView> {
                   ],
                 ),
               ).animate().fadeIn(delay: 800.ms).slideY(begin: 0.1),
+
+              const SizedBox(height: 20),
+
+              // Tarot Ritual Trigger with New Text
+              // Tarot Ritual Trigger with New Text
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => _showCardRitual(context),
+                  borderRadius: BorderRadius.circular(16),
+                  child: GlassCard(
+                    borderColor: AppTheme.neonPurple,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                         const Icon(Icons.auto_awesome, color: AppTheme.neonPurple),
+                         const SizedBox(width: 10),
+                         Text("ENERJİ İZDÜŞÜMÜNÜ BAŞLAT", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonPurple)),
+                      ],
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 1.seconds),
             ],
           ),
         ),

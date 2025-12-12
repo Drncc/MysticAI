@@ -1,13 +1,9 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tekno_mistik/core/theme/app_theme.dart';
-import 'package:tekno_mistik/features/dashboard/presentation/widgets/glass_card.dart';
-import 'package:tekno_mistik/features/profile/presentation/providers/history_provider.dart';
-import 'package:tekno_mistik/core/utils/zodiac_calculator.dart';
+import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -17,312 +13,250 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
-  bool _isLoading = true;
-  Map<String, dynamic> _bioMetrics = {};
-  
-  // Cosmic Data
-  DateTime? _birthDate;
-  String _zodiacSign = "";
-  bool _cosmicEnabled = false;
+  // Simulating sensors
+  double _magneticField = 45.0;
+  double _chaosLevel = 12.0;
+  Timer? _simulationTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchProfile();
+    _startSensorSimulation();
   }
 
-  Future<void> _fetchProfile() async {
-    try {
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) return;
-
-      final data = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
-
-      if (data != null) {
-        final bio = data['bio_metrics'] as Map<String, dynamic>? ?? {};
-        setState(() {
-          _bioMetrics = bio;
-          
-          if (bio['birth_date'] != null) {
-            _birthDate = DateTime.tryParse(bio['birth_date']);
-            if (_birthDate != null) {
-              _zodiacSign = getZodiacSign(_birthDate!);
-            }
-          }
-          _cosmicEnabled = bio['cosmic_enabled'] ?? false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Profile Fetch Error: $e");
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+  @override
+  void dispose() {
+    _simulationTimer?.cancel();
+    super.dispose();
   }
 
-  Future<void> _saveCosmicData() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
-
-    try {
-      final updatedBio = Map<String, dynamic>.from(_bioMetrics);
-      if (_birthDate != null) {
-        updatedBio['birth_date'] = _birthDate!.toIso8601String();
-        updatedBio['zodiac_sign'] = _zodiacSign;
-      }
-      updatedBio['cosmic_enabled'] = _cosmicEnabled;
-
-      await Supabase.instance.client.from('profiles').update({
-        'bio_metrics': updatedBio,
-      }).eq('id', userId);
-
+  void _startSensorSimulation() {
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 150), (timer) {
+      if (!mounted) return;
       setState(() {
-        _bioMetrics = updatedBio;
+        final random = Random();
+        _magneticField = 40.0 + random.nextDouble() * 10.0 - 5.0; 
+        _chaosLevel = (_chaosLevel + (random.nextDouble() * 4 - 2)).clamp(0.0, 100.0);
       });
-
-      if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text("Kozmik Veriler Güncellendi"), backgroundColor: AppTheme.neonCyan),
-         );
-      }
-    } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text("Hata: $e"), backgroundColor: AppTheme.errorRed),
-         );
-       }
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _birthDate ?? DateTime(2000),
-      firstDate: DateTime(1900),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppTheme.neonPurple,
-              onPrimary: Colors.white,
-              surface: AppTheme.deepBlack,
-              onSurface: Colors.white,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && picked != _birthDate) {
-      setState(() {
-        _birthDate = picked;
-        _zodiacSign = getZodiacSign(picked);
-      });
-      _saveCosmicData(); // Auto save on change
-    }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final historyAsync = ref.watch(historyNotifierProvider);
+    final settings = ref.watch(userSettingsProvider);
+    final notifier = ref.read(userSettingsProvider.notifier);
 
-    if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(child: CircularProgressIndicator(color: AppTheme.neonCyan)),
-      );
-    }
+    const cardColor = Color(0xFF1E1E1E);
+    const accentColor = Color(0xFFBB86FC);
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Text(
-                "NÖRAL ARŞİV",
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(fontSize: 28),
-              ).animate().fadeIn().slideX(),
-              
-              const SizedBox(height: 20),
-
-              // COSMIC DATA CARD (NEW)
-              GlassCard(
-                borderColor: AppTheme.neonPurple.withValues(alpha: 0.5),
-                child: Column(
-                  children: [
-                     Row(
-                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                       children: [
-                         Text("KOZMİK ANALİZ", style: GoogleFonts.orbitron(color: AppTheme.neonPurple, fontSize: 12)),
-                         Switch(
-                           value: _cosmicEnabled,
-                           activeColor: AppTheme.neonPurple,
-                           onChanged: (val) {
-                             setState(() => _cosmicEnabled = val);
-                             _saveCosmicData();
-                           },
-                         )
-                       ],
-                     ),
-                     const Divider(color: Colors.white12),
-                     GestureDetector(
-                       onTap: () => _selectDate(context),
-                       child: Row(
-                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                         children: [
-                           Column(
-                             crossAxisAlignment: CrossAxisAlignment.start,
-                             children: [
-                               const Text("DOĞUM TARİHİ", style: TextStyle(color: Colors.white38, fontSize: 10)),
-                               Text(
-                                 _birthDate == null 
-                                   ? "Seçilmedi" 
-                                   : "${_birthDate!.day}.${_birthDate!.month}.${_birthDate!.year}",
-                                 style: const TextStyle(color: Colors.white, fontSize: 16),
-                               ),
-                             ],
-                           ),
-                           Column(
-                             crossAxisAlignment: CrossAxisAlignment.end,
-                             children: [
-                               const Text("BURÇ", style: TextStyle(color: Colors.white38, fontSize: 10)),
-                               Text(
-                                 _zodiacSign.isEmpty ? "--" : _zodiacSign,
-                                 style: const TextStyle(color: AppTheme.neonCyan, fontSize: 16, fontWeight: FontWeight.bold),
-                               ),
-                             ],
-                           ),
-                         ],
-                       ),
-                     ),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 800.ms),
-
-              const SizedBox(height: 20),
-
-              // Biometrics Section (Read Only here, updated in onboarding)
-              GlassCard(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildBioItem("YAŞ", _bioMetrics['age']?.toString() ?? "--"),
-                    _buildBioItem("BOY", "${_bioMetrics['height'] ?? '--'} cm"),
-                    _buildBioItem("KÜTLE", "${_bioMetrics['weight'] ?? '--'} kg"),
-                  ],
-                ),
-              ).animate().fadeIn(duration: 600.ms),
-
-              const SizedBox(height: 30),
-              
-              // History Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      backgroundColor: const Color(0xFF121212),
+      appBar: AppBar(
+        title: Text("PROFİL", style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16)),
+        backgroundColor: const Color(0xFF121212),
+        elevation: 0,
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // BÖLÜM 1: KİŞİSEL BİLGİLER
+            Text("KİMLİK", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
                 children: [
-                  Text("GEÇMİŞ KEHANETLER", style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppTheme.neonPurple)),
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white54),
-                    onPressed: () => ref.refresh(historyNotifierProvider),
+                  _buildModernTextField(
+                    label: "Ad Soyad",
+                    initialValue: settings.name,
+                    onChanged: notifier.updateName,
+                    icon: Icons.person,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildModernTextField(
+                          label: "Boy (cm)",
+                          initialValue: settings.height,
+                          onChanged: notifier.updateHeight,
+                          icon: Icons.height,
+                          numeric: true,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildModernTextField(
+                          label: "Kilo (kg)",
+                          initialValue: settings.weight,
+                          onChanged: notifier.updateWeight,
+                          icon: Icons.monitor_weight_outlined,
+                          numeric: true,
+                        ),
+                      ),
+                    ],
                   )
                 ],
               ),
-              const SizedBox(height: 10),
+            ),
 
-              Expanded(
-                child: historyAsync.when(
-                  data: (history) {
-                    if (history.isEmpty) {
-                      return Center(
-                        child: Text(
-                          "Arşiv boş. Henüz bir kehanet indirilmedi.",
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+            const SizedBox(height: 24),
+
+            // BÖLÜM 2: KOZMİK KİMLİK
+            Text("KOZMİK KİMLİK", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  InkWell(
+                    onTap: () async {
+                       final date = await showDatePicker(
+                          context: context,
+                          initialDate: settings.birthDate ?? DateTime(2000),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                          builder: (context, child) {
+                            return Theme(
+                              data: ThemeData.dark().copyWith(
+                                colorScheme: const ColorScheme.dark(
+                                  primary: accentColor,
+                                  onPrimary: Colors.black,
+                                  surface: cardColor,
+                                  onSurface: Colors.white,
+                                ),
+                              ),
+                              child: child!,
+                            );
+                          }
+                       );
+                       if (date != null) notifier.updateBirthDate(date);
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(color: accentColor.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+                          child: const Icon(Icons.calendar_today, color: accentColor, size: 20),
                         ),
-                      );
-                    }
-                    return ListView.builder(
-                      itemCount: history.length,
-                      itemBuilder: (context, index) {
-                        final item = history[index];
-                        final prompt = item['prompt'] as String;
-                        final response = item['response'] as String;
-                        final date = DateTime.parse(item['created_at']).toLocal();
-
-                        return GlassCard(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Tarih: ${date.day}/${date.month} ${date.hour}:${date.minute}",
-                                style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 10),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                "> $prompt",
-                                style: GoogleFonts.jetBrainsMono(color: AppTheme.neonCyan, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                response,
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ).animate().fadeIn(delay: (index * 100).ms).slideY(begin: 0.1);
-                      },
-                    );
-                  },
-                  error: (err, stack) => Center(child: Text("Arşiv Hatası: $err", style: const TextStyle(color: AppTheme.errorRed))),
-                  loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.neonPurple)),
-                ),
-              ),
-
-              const SizedBox(height: 10),
-              
-              // System Control
-              GlassCard(
-                borderColor: AppTheme.errorRed.withValues(alpha: 0.5),
-                child: InkWell(
-                  onTap: () async {
-                    await HapticFeedback.mediumImpact();
-                    await Supabase.instance.client.auth.signOut();
-                    if (context.mounted) {
-                      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-                    }
-                  },
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                       const Icon(Icons.power_settings_new, color: AppTheme.errorRed),
-                       const SizedBox(width: 10),
-                       Text("OTURUMU SONLANDIR", style: GoogleFonts.orbitron(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
-                    ],
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Doğum Tarihi", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)),
+                            Text(
+                              settings.birthDate != null 
+                                ? "${settings.birthDate!.day}.${settings.birthDate!.month}.${settings.birthDate!.year}"
+                                : "Seçiniz", 
+                              style: GoogleFonts.inter(color: Colors.white, fontSize: 16)
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        if (settings.zodiacSign != 'BİLİNMİYOR')
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: accentColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(settings.zodiacSign, style: GoogleFonts.inter(color: accentColor, fontWeight: FontWeight.bold, fontSize: 12)),
+                          )
+                      ],
+                    ),
                   ),
-                ),
+                  const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10)),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text("Burç Oracle'a Dahil Edilsin", style: GoogleFonts.inter(color: Colors.white, fontSize: 14)),
+                    subtitle: Text("Yapay zeka cevaplarında burç etkiniz hesaplanır.", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)),
+                    value: settings.includeZodiacInOracle,
+                    activeColor: accentColor,
+                    onChanged: notifier.toggleZodiacInOracle,
+                  ),
+                ],
               ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // BÖLÜM 3: BİYOMETRİK ÖZET
+            Text("ANLIK BİYOMETRİ (SİMÜLASYON)", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cardColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  _buildBiometricRow("Manyetik Akı", "${_magneticField.toStringAsFixed(1)} µT", _magneticField / 60, Colors.cyanAccent),
+                  const SizedBox(height: 16),
+                  _buildBiometricRow("Entropi Seviyesi", "${_chaosLevel.toInt()}%", _chaosLevel / 100, Colors.redAccent),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildBioItem(String label, String value) {
+  Widget _buildModernTextField({
+    required String label, 
+    required String initialValue, 
+    required Function(String) onChanged, 
+    required IconData icon,
+    bool numeric = false,
+  }) {
+    return TextFormField(
+      initialValue: initialValue,
+      onChanged: onChanged,
+      keyboardType: numeric ? TextInputType.number : TextInputType.text,
+      style: GoogleFonts.inter(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.inter(color: Colors.grey),
+        prefixIcon: Icon(icon, color: Colors.grey),
+        filled: true,
+        fillColor: Colors.black12,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 12),
+      ),
+    );
+  }
+
+  Widget _buildBiometricRow(String label, String value, double progress, Color color) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 10, letterSpacing: 1)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: GoogleFonts.inter(color: Colors.white70)),
+            Text(value, style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: progress.clamp(0.0, 1.0),
+          backgroundColor: Colors.black26,
+          color: color,
+          minHeight: 6,
+          borderRadius: BorderRadius.circular(3),
+        ),
       ],
     );
   }

@@ -41,15 +41,15 @@ class AppTheme {
         
         // Body: Clean Sans-Serif
         bodyLarge: GoogleFonts.inter(
-           fontSize: 16, color: textPrimary.withValues(alpha: 0.9), height: 1.5
+           fontSize: 16, color: textPrimary.withOpacity( 0.9), height: 1.5
         ),
         bodyMedium: GoogleFonts.inter(
-           fontSize: 14, color: textPrimary.withValues(alpha: 0.8), height: 1.4
+           fontSize: 14, color: textPrimary.withOpacity( 0.8), height: 1.4
         ),
         
         // Data/Technical: Monospace
         labelLarge: GoogleFonts.jetBrainsMono(
-           fontSize: 12, color: neonCyan.withValues(alpha: 0.8), letterSpacing: 1
+           fontSize: 12, color: neonCyan.withOpacity( 0.8), letterSpacing: 1
         ),
       ),
       
@@ -63,4 +63,16 @@ class AppTheme {
       iconTheme: const IconThemeData(color: neonCyan),
     );
   }
+
+  static TextStyle get orbitronStyle => GoogleFonts.orbitron(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    color: neonCyan,
+    letterSpacing: 1.5,
+  );
+
+  static TextStyle get interStyle => GoogleFonts.inter(
+    fontSize: 14,
+    color: Colors.white70,
+  );
 }
