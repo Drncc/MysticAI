@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
@@ -17,6 +19,7 @@ class OracleScreen extends ConsumerStatefulWidget {
 
 class _OracleScreenState extends ConsumerState<OracleScreen> {
   final TextEditingController _promptController = TextEditingController();
+  String? _lastQuestion; // To track the question for saving
 
   void _sendMessage() {
     final text = _promptController.text.trim();
@@ -24,8 +27,7 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
 
     final userSettings = ref.read(userSettingsProvider);
 
-    // Context Zenginleştirme (Derin Profil)
-    // "Kullanıcı [YAŞ] yaşında, [MESLEK] yapan, [MEDENİ DURUM] biri. Burcu [BURÇ]. Ona göre hitap et."
+    // Bağlam Zenginleştirme
     String contextPrompt = "\n[GİZLİ BAĞLAM: Kullanıcı Adı: ${userSettings.name}. ";
     if (userSettings.age.isNotEmpty) contextPrompt += "Yaş: ${userSettings.age}. ";
     if (userSettings.profession.isNotEmpty) contextPrompt += "Meslek: ${userSettings.profession}. ";
@@ -33,16 +35,44 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     if (userSettings.includeZodiacInOracle) contextPrompt += "Burç: ${userSettings.zodiacSign}. Astrolojik referanslar kullan. ";
     contextPrompt += "]";
 
-    String finalPrompt = "$text $contextPrompt";
+    final String finalPrompt = "$text $contextPrompt";
+
+    // Soruyu kaydet (Cevap gelince eşleştirmek için)
+    setState(() {
+      _lastQuestion = text;
+    });
 
     _promptController.clear();
     FocusScope.of(context).unfocus();
     ref.read(oracleNotifierProvider.notifier).seekGuidance(finalPrompt, isPremium: false);
   }
 
+  Future<void> _saveToHistory(String question, String answer) async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<String> currentHistory = prefs.getStringList('oracle_chat_history') ?? [];
+
+    final Map<String, String> newEntry = {
+      'question': question,
+      'answer': answer, // Cevabı olduğu gibi veya kısaltarak
+      'date': DateTime.now().toIso8601String(),
+    };
+
+    currentHistory.insert(0, jsonEncode(newEntry));
+    await prefs.setStringList('oracle_chat_history', currentHistory); 
+  }
+
   @override
   Widget build(BuildContext context) {
     final oracleState = ref.watch(oracleNotifierProvider);
+
+    // Listen to state changes to capture the response
+    ref.listen(oracleNotifierProvider, (previous, next) {
+      if (next is AsyncData && next.value != null && _lastQuestion != null) {
+        // Cevap geldi, kaydet
+        _saveToHistory(_lastQuestion!, next.value!);
+        _lastQuestion = null; // Reset
+      }
+    });
 
     return Scaffold(
       backgroundColor: Colors.transparent,

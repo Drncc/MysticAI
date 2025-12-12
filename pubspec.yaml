@@ -59,6 +59,7 @@ flutter:
   assets:
     - .env
     - assets/
+    - assets/tarot/
 
 flutter_icons:
   android: false

@@ -60,15 +60,11 @@ class _MysticTarotCardState extends State<MysticTarotCard> with SingleTickerProv
   }
 
   void _ensureImageSelected() {
-    // Only select if not already selected to avoid flickering on rebuilds
+    // Ensuring lowercase path construction
     if (widget.overrideVariantId != null) {
-      _selectedImagePath = 'assets/tarot/${widget.card.id}_${widget.card.codeName}_${widget.overrideVariantId}.jpg';
-    } else {
-      if (widget.overrideVariantId != null) {
-      _selectedImagePath = 'assets/tarot/${widget.card.id}_${widget.card.codeName}_${widget.overrideVariantId}.jpg';
+      _selectedImagePath = 'assets/tarot/${widget.card.id}_${widget.card.codeName.toLowerCase()}_${widget.overrideVariantId}.jpg';
     } else {
       _selectedImagePath ??= widget.card.randomImagePath;
-    }
     }
   }
 
@@ -126,6 +122,7 @@ class _MysticTarotCardState extends State<MysticTarotCard> with SingleTickerProv
         child: Image.asset(
           'assets/tarot/card_back.jpg',
           fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => Container(color: Colors.black),
         ),
       ),
     );
@@ -160,6 +157,9 @@ class _MysticTarotCardState extends State<MysticTarotCard> with SingleTickerProv
               fit: BoxFit.cover,
               color: widget.glowColor, 
               colorBlendMode: BlendMode.hardLight, // Creates the hologram tint
+              errorBuilder: (context, error, stackTrace) {
+                return Center(child: Icon(Icons.broken_image, color: widget.glowColor));
+              },
             ),
             
             // Shininess overlay (Fake reflection)
