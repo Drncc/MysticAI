@@ -1,310 +1,191 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
-import 'package:tekno_mistik/features/dashboard/presentation/widgets/glass_card.dart';
-import 'package:tekno_mistik/features/dashboard/presentation/widgets/living_background.dart';
 
-class StoreScreen extends StatelessWidget {
+class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
+
+  @override
+  State<StoreScreen> createState() => _StoreScreenState();
+}
+
+class _StoreScreenState extends State<StoreScreen> {
+  int _selectedPackageIndex = 1; // Default to Monthly (Popular)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          "AETHER BAĞLANTISI",
-          style: AppTheme.orbitronStyle.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.neonCyan,
-            shadows: [
-              Shadow(color: AppTheme.neonCyan, blurRadius: 10),
-            ],
-          ),
-        ),
+        title: Text("KOZMİK ERİŞİM", style: AppTheme.orbitronStyle.copyWith(letterSpacing: 2, color: AppTheme.neonCyan)),
         centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        elevation: 0,
       ),
-      body: Stack(
-        children: [
-          // 1. Dinamik Arka Plan
-          const LivingBackground(child: SizedBox()),
-
-          // 2. İçerik
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 10),
-                  
-                  // --- HEADER ---
-                  Center(
-                    child: Text(
-                      "Sınırlamaları kaldır ve\nevrenin derin verilerine eriş.",
-                      textAlign: TextAlign.center,
-                      style: AppTheme.interStyle.copyWith(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // --- HERO: ORACLE PRIME CARD ---
-                  _buildHeroSubscriptionCard(),
-
-                  const SizedBox(height: 40),
-
-                  // --- SECTION TITLE ---
-                  Text(
-                    "ENERJİ KRİSTALLERİ",
-                    style: AppTheme.orbitronStyle.copyWith(
-                      color: AppTheme.neonCyan,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-
-                  // --- CONSUMABLES GRID ---
-                  _buildConsumablesGrid(),
-
-                  const SizedBox(height: 100), // Bottom padding
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHeroSubscriptionCard() {
-    return GlassCard(
-      borderColor: AppTheme.neonPurple,
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.deepSpace.withOpacity( 0.6),
-              AppTheme.neonPurple.withOpacity( 0.1),
-            ],
-          ),
-        ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100), // Bottom padding for nav bar
         child: Column(
           children: [
-            // Icon / Badge
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black,
-                border: Border.all(color: AppTheme.neonPurple, width: 2),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.neonPurple.withOpacity( 0.5), blurRadius: 20),
-                ],
-              ),
-              child: const Icon(Icons.auto_awesome, color: AppTheme.neonPurple, size: 32),
-            ),
-            const SizedBox(height: 16),
-
-            // Title
+            // Header Description
             Text(
-              "ORACLE PRIME",
-              style: AppTheme.orbitronStyle.copyWith(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 2,
-                shadows: [Shadow(color: AppTheme.neonPurple, blurRadius: 15)],
-              ),
+              "Evrenin sırlarına sınırsız erişim sağla.\nKaderini şekillendir.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(color: Colors.white70, fontSize: 14, height: 1.5),
+            ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2),
+
+            const SizedBox(height: 30),
+
+            // Feature List
+            _buildFeatureItem("Sınırsız Kehanet Hakkı"),
+            _buildFeatureItem("Detaylı Burç & Astro Analizi"),
+            _buildFeatureItem("Reklamsız Mistik Deneyim"),
+            _buildFeatureItem("Özel Tarot Açılımları"),
+
+            const SizedBox(height: 40),
+
+            // Packages
+            _buildPackageOption(
+              index: 0,
+              title: "ÇIRAK",
+              price: "₺49.99 / Hafta",
+              isPopular: false,
             ),
-            const SizedBox(height: 24),
-
-            // Features List
-            _buildFeatureRow(Icons.lock_open_rounded, "Derin Analiz Modu", "Uzun ve detaylı kehanetler."),
-            _buildFeatureRow(Icons.all_inclusive_rounded, "Genişletilmiş Limit", "Günde 20 soru hakkı."),
-            _buildFeatureRow(Icons.color_lens_rounded, "Kozmik Temalar", "Özel Göz tasarımlarını aç."),
-            _buildFeatureRow(Icons.block_rounded, "Sessiz Akış", "Reklamsız deneyim."),
-
-            const SizedBox(height: 24),
-
-            // Call to Action Button (Pulsating)
-            Container(
-              width: double.infinity,
-              height: 55,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: const LinearGradient(
-                  colors: [AppTheme.neonPurple, Colors.deepPurple],
-                ),
-                boxShadow: [
-                  BoxShadow(color: AppTheme.neonPurple.withOpacity( 0.6), blurRadius: 15, spreadRadius: 1),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {}, // TODO: Implement Purchase Logic
-                  borderRadius: BorderRadius.circular(16),
-                  child: Center(
-                    child: Text(
-                      "YÜKSELTME BAŞLAT - ₺99/Ay",
-                      style: AppTheme.orbitronStyle.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            const SizedBox(height: 15),
+            _buildPackageOption(
+              index: 1,
+              title: "KAHİN",
+              price: "₺149.99 / Ay",
+              isPopular: true,
             ),
+            const SizedBox(height: 15),
+            _buildPackageOption(
+              index: 2,
+              title: "ÜSTAT",
+              price: "₺999.99 / Yıl",
+              isPopular: false,
+            ),
+
+            const SizedBox(height: 40),
+
+            // Action Button
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.neonCyan.withOpacity(0.2),
+                foregroundColor: AppTheme.neonCyan,
+                shadowColor: AppTheme.neonCyan,
+                elevation: 10,
+                padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  side: BorderSide(color: AppTheme.neonCyan, width: 2)
+                ),
+              ),
+              onPressed: () {
+                // TODO: IAP Integration
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Kozmik kapılar henüz kapalı...", style: GoogleFonts.orbitron()),
+                    backgroundColor: Colors.indigo,
+                  )
+                );
+              },
+              child: Text(
+                "SEÇİMİ ONAYLA VE YÜKSEL",
+                style: AppTheme.orbitronStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ).animate(onPlay: (c)=>c.repeat(reverse: true))
+             .shimmer(duration: 3.seconds, delay: 2.seconds),
+             
+            const SizedBox(height: 20),
+            Text(
+              "İptal edilebilir. Gizlilik politikası geçerlidir.",
+              style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
+            )
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFeatureRow(IconData icon, String title, String subtitle) {
+  Widget _buildFeatureItem(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         children: [
-          Icon(icon, color: AppTheme.neonCyan, size: 20),
+          Icon(Icons.check_circle_outline, color: AppTheme.neonPurple, size: 20),
           const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTheme.interStyle.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: AppTheme.interStyle.copyWith(
-                    color: Colors.white54,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Text(text, style: GoogleFonts.inter(color: Colors.white, fontSize: 14)),
         ],
       ),
-    );
+    ).animate().fadeIn(delay: 300.ms).slideX();
   }
 
-  Widget _buildConsumablesGrid() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      childAspectRatio: 0.85, // Taller cards
-      mainAxisSpacing: 15,
-      crossAxisSpacing: 15,
-      children: [
-        _buildConsumableCard("1 Enerji Kristali", "Anlık Yükleme", "₺19.99"),
-        _buildConsumableCard("5 Enerji Kristali", "Mistik Paket", "₺79.99", isPopular: true),
-        _buildConsumableCard("10 Enerji Kristali", "Kozmik Kasa", "₺149.99"),
-        _buildConsumableCard("Sonsuz Kristal", "Ömür Boyu", "₺999.99"),
-      ],
-    );
-  }
-
-  Widget _buildConsumableCard(String title, String subtitle, String price, {bool isPopular = false}) {
-    return Stack(
-      children: [
-        GlassCard(
-          borderColor: isPopular ? AppTheme.neonCyan : Colors.white10,
+  Widget _buildPackageOption({required int index, required String title, required String price, required bool isPopular}) {
+    final isSelected = _selectedPackageIndex == index;
+    
+    return GestureDetector(
+      onTap: () => setState(() => _selectedPackageIndex = index),
+      child: AnimatedContainer(
+        duration: 300.ms,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected ? [
+            BoxShadow(color: isPopular ? AppTheme.neonCyan.withOpacity(0.4) : AppTheme.neonPurple.withOpacity(0.4), blurRadius: 20, spreadRadius: 2)
+          ] : [],
+        ),
+        child: GlassCard(
+          color: isSelected 
+             ? (isPopular ? AppTheme.neonCyan.withOpacity(0.15) : AppTheme.neonPurple.withOpacity(0.15))
+             : Colors.white.withOpacity(0.05),
+          borderColor: isSelected 
+             ? (isPopular ? AppTheme.neonCyan : AppTheme.neonPurple)
+             : Colors.white12,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Icon(Icons.diamond_outlined, color: isPopular ? AppTheme.neonCyan : Colors.white70, size: 36),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: AppTheme.interStyle.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: AppTheme.interStyle.copyWith(
-                    color: Colors.white54,
-                    fontSize: 11,
-                  ),
-                ),
-                const SizedBox(height: 12),
+                // Radio Circle
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  width: 24, height: 24,
                   decoration: BoxDecoration(
-                    color: Colors.white10,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: isPopular ? AppTheme.neonCyan.withOpacity( 0.5) : Colors.transparent),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: isSelected ? (isPopular ? AppTheme.neonCyan : AppTheme.neonPurple) : Colors.white24, width: 2),
                   ),
-                  child: Text(
-                    price,
-                    style: AppTheme.orbitronStyle.copyWith(
-                      color: isPopular ? AppTheme.neonCyan : Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: isSelected ? Center(child: Container(width: 12, height: 12, decoration: BoxDecoration(shape: BoxShape.circle, color: isPopular ? AppTheme.neonCyan : AppTheme.neonPurple))) : null,
                 ),
+                const SizedBox(width: 20),
+                
+                // Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(title, style: AppTheme.orbitronStyle.copyWith(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          if (isPopular) ...[
+                            const SizedBox(width: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(color: AppTheme.neonCyan, borderRadius: BorderRadius.circular(10)),
+                              child: Text("POPÜLER", style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
+                            )
+                          ]
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(price, style: GoogleFonts.inter(color: Colors.white70, fontSize: 14)),
+                    ],
+                  ),
+                )
               ],
             ),
           ),
         ),
-        if (isPopular)
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: const BoxDecoration(
-                color: AppTheme.neonCyan,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(10),
-                  topRight: Radius.circular(16), // Match card radius
-                ),
-              ),
-              child: Text(
-                "POPÜLER",
-                style: AppTheme.interStyle.copyWith(
-                  color: Colors.black,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }

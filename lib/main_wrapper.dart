@@ -6,6 +6,7 @@ import 'package:tekno_mistik/features/data_stream/presentation/data_stream_scree
 import 'package:tekno_mistik/features/oracle/presentation/oracle_screen.dart';
 import 'package:tekno_mistik/features/settings/presentation/settings_screen.dart';
 import 'package:tekno_mistik/features/tarot/presentation/prophecy_screen.dart';
+import 'package:tekno_mistik/features/store/presentation/store_screen.dart'; // NEW IMPORT
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 
 class MainWrapper extends ConsumerStatefulWidget {
@@ -22,6 +23,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
   final List<Widget> _screens = [
     const DataStreamScreen(),
     const OracleScreen(),
+    const StoreScreen(), // NEW CENTER TAB
     const ProphecyScreen(),
     const SettingsScreen(),
   ];
@@ -119,6 +121,10 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
               BottomNavigationBarItem(
                 icon: Icon(Icons.remove_red_eye),
                 label: 'ORACLE',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.star), // NEW CENTER ICON
+                label: 'MAĞAZA',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.auto_awesome),
