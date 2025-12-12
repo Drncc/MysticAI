@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
+import 'package:tekno_mistik/features/auth/presentation/login_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -17,7 +18,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<Map<String, dynamic>> _history = [];
-  bool _isLoading = true;
+  bool _isHistoryLoading = true;
 
   @override
   void initState() {
@@ -26,20 +27,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
     _loadHistory();
   }
 
+  // --- YARDIMCI METOTLAR ---
+  
   Future<void> _loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> rawHistory = prefs.getStringList('oracle_chat_history') ?? [];
     
-    setState(() {
-      _history = rawHistory.map((e) {
-        try {
-          return jsonDecode(e) as Map<String, dynamic>;
-        } catch (_) {
-          return {'question': e, 'answer': '', 'date': ''};
-        }
-      }).toList();
-      _isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _history = rawHistory.map((e) {
+          try {
+            return jsonDecode(e) as Map<String, dynamic>;
+          } catch (_) {
+            return {'question': e, 'answer': '', 'date': ''};
+          }
+        }).toList();
+        _isHistoryLoading = false;
+      });
+    }
   }
 
   Future<void> _deleteHistoryItem(int index) async {
@@ -52,12 +57,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
     await prefs.setStringList('oracle_chat_history', encodedList);
   }
 
+  Future<void> _logoutAndReset(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: Text("Sistem Kapatılıyor", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed)),
+        content: Text(
+          "Tüm yerel verilerin, sohbet geçmişin ve kimliğin silinecek. Kozmik bağ koparılacak. Emin misin?", 
+          style: GoogleFonts.inter(color: Colors.white70)
+        ),
+        actions: [
+          TextButton(
+            child: const Text("İPTAL", style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: const Text("BAĞLANTIYI KES", style: TextStyle(color: AppTheme.errorRed, fontWeight: FontWeight.bold)),
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog
+              
+              // Clear Data
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              
+              // Navigate to Login
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (Route<dynamic> route) => false,
+                );
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
   }
 
+  // --- BUILD METODU ---
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,6 +133,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
       ),
     );
   }
+
+  // --- TAB WIDGETLARI ---
 
   Widget _buildIdentityTab() {
     final settings = ref.watch(userSettingsProvider);
@@ -205,14 +251,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                },
                child: Text("KAYDET", style: AppTheme.orbitronStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
              ),
-          )
+          ),
+
+          // 5. BAĞLANTIYI KOPAR (ÇIKIŞ)
+          const SizedBox(height: 40),
+          Center(
+            child: GestureDetector(
+              onTap: () => _logoutAndReset(context),
+              child: GlassCard(
+                color: Colors.red.withOpacity(0.1),
+                borderColor: Colors.red.withOpacity(0.3),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.power_settings_new, color: Colors.red),
+                      const SizedBox(width: 10),
+                      Text(
+                        "BAĞLANTIYI KOPAR (ÇIKIŞ)", 
+                        style: AppTheme.orbitronStyle.copyWith(color: Colors.red, fontSize: 12)
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 50),
         ],
       ),
     );
   }
 
   Widget _buildHistoryTab() {
-    if (_isLoading) {
+    if (_isHistoryLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 

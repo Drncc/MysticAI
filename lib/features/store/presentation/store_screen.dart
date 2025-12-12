@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
+import 'package:tekno_mistik/core/services/limit_service.dart';
 
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -38,12 +39,12 @@ class _StoreScreenState extends State<StoreScreen> {
 
             const SizedBox(height: 30),
 
-            // Feature List
-            _buildFeatureItem("Sınırsız Kehanet Hakkı"),
+            // Feature List (UPDATED)
+            _buildFeatureItem("Günde 15 Detaylı Oracle Mesajı"), // Updated Text
+            _buildFeatureItem("Günde 3 Tarot Kartı Açılımı"), // Updated Text
             _buildFeatureItem("Detaylı Burç & Astro Analizi"),
             _buildFeatureItem("Reklamsız Mistik Deneyim"),
-            _buildFeatureItem("Özel Tarot Açılımları"),
-
+            
             const SizedBox(height: 40),
 
             // Packages
@@ -83,14 +84,18 @@ class _StoreScreenState extends State<StoreScreen> {
                   side: BorderSide(color: AppTheme.neonCyan, width: 2)
                 ),
               ),
-              onPressed: () {
-                // TODO: IAP Integration
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Kozmik kapılar henüz kapalı...", style: GoogleFonts.orbitron()),
-                    backgroundColor: Colors.indigo,
-                  )
-                );
+              onPressed: () async {
+                // Mock Upgrade Logic
+                await LimitService().upgradeToPremium();
+                
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Yükseliş Tamamlandı. Sınırlar Kalktı.", style: GoogleFonts.orbitron()),
+                      backgroundColor: AppTheme.neonPurple,
+                    )
+                  );
+                }
               },
               child: Text(
                 "SEÇİMİ ONAYLA VE YÜKSEL",

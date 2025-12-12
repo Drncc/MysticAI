@@ -9,6 +9,7 @@ import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/tarot/presentation/widgets/mystic_tarot_card.dart';
 import 'package:tekno_mistik/features/tarot/services/tarot_service.dart';
 import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
+import 'package:tekno_mistik/core/services/limit_service.dart';
 
 class ProphecyScreen extends ConsumerStatefulWidget {
   const ProphecyScreen({super.key});
@@ -20,19 +21,39 @@ class ProphecyScreen extends ConsumerStatefulWidget {
 class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
   
   Future<void> _revealProphecy() async {
-    // 1. Basit Sentiment Analizi Simülasyonu
-    // Son Oracle mesajını veya ruh halini kontrol edebiliriz
-    // Şimdilik Random ağırlık ile "Karanlık" veya "Aydınlık" varyasyon seçimi
+    // 1. LIMIT CHECK
+    if (!LimitService().canDrawCard) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E2C),
+          title: Text("Kader Mühürlendi", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed)),
+          content: Text("Bugünlük kart hakkın doldu. Yarın gel veya Üstat seviyesine geç.", style: GoogleFonts.inter(color: Colors.white70)),
+          actions: [
+            TextButton(
+              child: const Text("ANLADIM", style: TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    // 2. Basit Sentiment Analizi Simülasyonu
     final random = Random();
     int preferredVariant = 1; // Default
-    if (random.nextDouble() > 0.7) preferredVariant = 3; // %30 ihtimalle daha karanlık/mistik varyasyon
+    if (random.nextDouble() > 0.7) preferredVariant = 3; 
 
-    // 2. Kart Çek
+    // 3. Kart Çek
     final selection = await TarotService().drawDailyCard(preferredVariant: preferredVariant);
+    
+    // Increment Limit (Success)
+    LimitService().incrementCard();
 
     if (!mounted) return;
 
-    // 3. Mistik Dialog
+    // 4. Mistik Dialog
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -77,7 +98,6 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                      const SizedBox(height: 30),
                      
                      // KART GÖRSELİ
-                     // overrideVariantId kullanımı TarotService'den gelen değeri alır
                      SizedBox(
                        height: 380,
                        child: MysticTarotCard(
@@ -148,7 +168,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
             children: [
               // RİTÜEL ALANI
               GestureDetector(
-                onTap: _revealProphecy,
+                onTap: _revealProphecy, // Trigger function
                 child: Container(
                   width: 250, 
                   height: 390,
@@ -167,24 +187,10 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                         Image.asset(
                           'assets/tarot/card_back.jpg',
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: const Color(0xFF151026),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.auto_awesome, color: Colors.white12, size: 60),
-                                  SizedBox(height: 10),
-                                  Text("GİZEMLİ KART", style: GoogleFonts.orbitron(color: Colors.white12, fontSize: 10))
-                                ],
-                              ),
-                            );
-                          },
+                          errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF151026)),
                         ),
                         // Overlay
-                        Container(
-                          color: Colors.black.withOpacity(0.2),
-                        ),
+                        Container(color: Colors.black.withOpacity(0.2)),
                         // Pulse Icon
                         Center(
                           child: Icon(Icons.fingerprint, color: AppTheme.neonPurple.withOpacity(0.7), size: 64)
@@ -207,7 +213,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Text(
-                    "KARTI ÇEKMEK İÇİN DOKUN",
+                    "ENERJİNİ KARTA MÜHÜRLE", // Updated Text
                     style: AppTheme.orbitronStyle.copyWith(
                       fontSize: 14,
                       color: AppTheme.neonCyan,

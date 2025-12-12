@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tekno_mistik/core/config/env_config.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
-import 'package:tekno_mistik/main_wrapper.dart'; // IMPORT MainWrapper
+import 'package:tekno_mistik/features/auth/presentation/login_screen.dart'; // UPDATED Import
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       title: 'MysticAI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const MainWrapper(), // UPDATED: Kullanıcı Uyarısı Doğrultusunda Değiştirildi
+      home: const LoginScreen(), // UPDATED: Starts with Login Screen
     );
   }
 }
