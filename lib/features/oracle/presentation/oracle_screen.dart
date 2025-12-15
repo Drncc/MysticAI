@@ -74,13 +74,20 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     final userSettings = ref.read(userSettingsProvider);
 
     // Bağlam Zenginleştirme
+    // Bağlam Zenginleştirme
     String contextPrompt = "\n[GİZLİ BAĞLAM: Kullanıcı Adı: ${userSettings.name}. ";
     if (userSettings.age.isNotEmpty) contextPrompt += "Yaş: ${userSettings.age}. ";
     if (userSettings.profession.isNotEmpty) contextPrompt += "Meslek: ${userSettings.profession}. ";
     if (userSettings.maritalStatus.isNotEmpty) contextPrompt += "Medeni Durum: ${userSettings.maritalStatus}. ";
     if (userSettings.includeZodiacInOracle) contextPrompt += "Burç: ${userSettings.zodiacSign}. Astrolojik referanslar kullan. ";
-    contextPrompt += "]";
-    // Premium Logic for Prompt
+    
+    // RETENTION & PERSONA INSTRUCTION
+    contextPrompt += "Sen sadece cevap veren bir bot değil, sohbeti devam ettirmek isteyen meraklı bir arkadaşsın. Cevabını verdikten sonra MUTLAKA kullanıcıya konuyla ilgili yeni, kişisel ve merak uyandırıcı bir soru sor. Konuyu asla kapatma.";
+    
+    // LANGUAGE RULE
+    contextPrompt += " YANIT DİLİ KURALI: Yanıtlarını SADECE standart Türkçe alfabesi ile ver. Asla Çince, Japonca, Kiril veya Latin olmayan başka karakterler kullanma. Kelimelerin arasına yabancı semboller karıştırma.]";
+
+    // Premium Logic for Prompt Length
     if (LimitService().isPremium) {
       contextPrompt += " Cevabı detaylı, astrolojik transitleri içerecek şekilde uzun ver.";
     } else {
@@ -177,6 +184,10 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
                       padding: const EdgeInsets.all(20),
                       constraints: const BoxConstraints(minHeight: 150),
                       child: SingleChildScrollView(
+                        reverse: true, // Auto-scroll to bottom effectively for new content if aligned right, but here we want to see the start usually? 
+                        // Actually "Sohbet en alta kaysın" implies chat interface or auto-scroll. 
+                        // Since this is a single response area, maybe the user wants to see the typing effect?
+                        // Let's implement a scroll controller.
                         child: Text(
                           response ?? "Kehanet için sorunu yönelt...",
                           style: GoogleFonts.inter(

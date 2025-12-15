@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
@@ -19,12 +21,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
   late TabController _tabController;
   List<Map<String, dynamic>> _history = [];
   bool _isHistoryLoading = true;
+  String? _profileImagePath;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadHistory();
+    _loadProfileImage();
+  }
+
+  Future<void> _loadProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _profileImagePath = prefs.getString('profile_image_path');
+    });
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _profileImagePath = image.path;
+        });
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('profile_image_path', image.path);
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    }
   }
 
   // --- YARDIMCI METOTLAR ---
@@ -111,6 +138,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
         centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.cyanAccent),
+          onPressed: () => Navigator.pop(context),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.neonCyan,
@@ -152,6 +183,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
+                  // PROFILE AVATAR
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.neonCyan, width: 2),
+                            boxShadow: [BoxShadow(color: AppTheme.neonCyan.withOpacity(0.3), blurRadius: 15)],
+                            image: DecorationImage(
+                              image: _profileImagePath != null
+                                  ? FileImage(File(_profileImagePath!)) as ImageProvider
+                                  : const AssetImage('assets/tarot/0_fool_1.jpg'),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.neonPurple,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
                   _buildNeonInput(
                     label: "AD SOYAD", 
                     value: settings.name, 

@@ -6,7 +6,8 @@ import 'package:tekno_mistik/features/data_stream/presentation/data_stream_scree
 import 'package:tekno_mistik/features/oracle/presentation/oracle_screen.dart';
 import 'package:tekno_mistik/features/settings/presentation/settings_screen.dart';
 import 'package:tekno_mistik/features/tarot/presentation/prophecy_screen.dart';
-import 'package:tekno_mistik/features/store/presentation/store_screen.dart'; // NEW IMPORT
+import 'package:tekno_mistik/features/store/presentation/store_screen.dart'; 
+import 'package:tekno_mistik/features/social/presentation/social_screen.dart'; // NEW IMPORT
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 
 class MainWrapper extends ConsumerStatefulWidget {
@@ -23,22 +24,25 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
   final List<Widget> _screens = [
     const DataStreamScreen(),
     const OracleScreen(),
-    const StoreScreen(), // NEW CENTER TAB
+    const StoreScreen(),
     const ProphecyScreen(),
-    const SettingsScreen(),
+    const SocialScreen(), // NEW TAB (Index 4)
+  ];
+
+  final List<String> _titles = [
+    "VERİ AKIŞI",
+    "ORACLE",
+    "KOZMİK MAĞAZA",
+    "KEHANET",
+    "TOPLULUK",
   ];
 
   @override
   void initState() {
     super.initState();
-    // Check if user is known, if not hint at settings (can be refined with a dialog, but logic here directs awareness)
     WidgetsBinding.instance.addPostFrameCallback((_) {
        final settings = ref.read(userSettingsProvider);
-       if (settings.name.isEmpty) {
-         // Optionally navigate to Settings index if needed, but for now we start at DataStream as "Anonymous Traveler"
-         // or we could force it:
-         // _onItemTapped(3);
-       }
+       // Initial check logic if needed
     });
   }
 
@@ -60,7 +64,24 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      resizeToAvoidBottomInset: false, // Critical for avoiding keyboard push-up issues on gradient
+      resizeToAvoidBottomInset: false, 
+      appBar: AppBar(
+        title: Text(_titles[_currentIndex], style: AppTheme.orbitronStyle.copyWith(fontSize: 16, letterSpacing: 2)),
+        centerTitle: true,
+        backgroundColor: Colors.transparent, // Transparent for gradient
+        elevation: 0,
+        leading: Icon(Icons.auto_awesome, color: AppTheme.neonCyan.withOpacity(0.5)), // Small Logo
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings, color: AppTheme.neonPurple), 
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          )
+        ],
+      ),
       body: Stack(
         children: [
           // GLOBAL DEEP MYSTIC GRADIENT
@@ -70,9 +91,9 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xFF0F0C29), // Deepest Dark
-                  Color(0xFF302B63), // Purple Mystery
-                  Color(0xFF24243E), // Cosmic Night
+                  Color(0xFF0F0C29), 
+                  Color(0xFF302B63), 
+                  Color(0xFF24243E), 
                 ],
               ),
             ),
@@ -116,23 +137,23 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(Icons.waves),
-                label: 'VERİ AKIŞI',
+                label: 'VERİ',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.remove_red_eye),
                 label: 'ORACLE',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.star), // NEW CENTER ICON
+                icon: Icon(Icons.star), 
                 label: 'MAĞAZA',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.auto_awesome),
                 label: 'KEHANET',
               ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings_suggest),
-                label: 'AYARLAR',
+              BottomNavigationBarItem( // NEW TAB
+                icon: Icon(Icons.public),
+                label: 'SOSYAL',
               ),
             ],
           ),
