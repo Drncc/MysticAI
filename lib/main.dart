@@ -3,8 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tekno_mistik/core/config/env_config.dart';
+import 'package:tekno_mistik/core/services/notification_service.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
-import 'package:tekno_mistik/features/auth/presentation/login_screen.dart'; // UPDATED Import
+import 'package:tekno_mistik/features/auth/presentation/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +18,11 @@ void main() async {
     url: EnvConfig.supabaseUrl,
     anonKey: EnvConfig.supabaseAnonKey,
   );
+
+  // Init Notifications
+  final notificationService = NotificationService();
+  await notificationService.init();
+  await notificationService.scheduleDailyNotification();
 
   runApp(const ProviderScope(child: MyApp()));
 }

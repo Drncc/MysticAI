@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
+import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/features/tarot/presentation/widgets/mystic_tarot_card.dart';
 import 'package:tekno_mistik/features/tarot/services/tarot_service.dart';
-import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
 import 'package:tekno_mistik/core/services/limit_service.dart';
 
 class ProphecyScreen extends ConsumerStatefulWidget {
@@ -19,41 +20,59 @@ class ProphecyScreen extends ConsumerStatefulWidget {
 }
 
 class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
-  
+  bool _isSealing = false; // Loading state
+
   Future<void> _revealProphecy() async {
-    // 1. LIMIT CHECK
     if (!LimitService().canDrawCard) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E2C),
-          title: Text("Kader Mühürlendi", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed)),
-          content: Text("Bugünlük kart hakkın doldu. Yarın gel veya Üstat seviyesine geç.", style: GoogleFonts.inter(color: Colors.white70)),
-          actions: [
-            TextButton(
-              child: const Text("ANLADIM", style: TextStyle(color: Colors.grey)),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ],
-        ),
-      );
+      _showLimitDialog();
       return;
     }
 
-    // 2. Basit Sentiment Analizi Simülasyonu
-    final random = Random();
-    int preferredVariant = 1; // Default
-    if (random.nextDouble() > 0.7) preferredVariant = 3; 
+    // 1. Loading Ritual Start
+    setState(() {
+      _isSealing = true;
+    });
 
-    // 3. Kart Çek
-    final selection = await TarotService().drawDailyCard(preferredVariant: preferredVariant);
-    
-    // Increment Limit (Success)
-    LimitService().incrementCard();
+    // 3 Saniye Bekle (Mistik Gerilim)
+    await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
 
-    // 4. Mistik Dialog
+    final random = Random();
+    int preferredVariant = 1; 
+    if (random.nextDouble() > 0.7) preferredVariant = 3; 
+
+    final selection = await TarotService().drawDailyCard(preferredVariant: preferredVariant);
+    
+    LimitService().incrementCard();
+
+    setState(() {
+      _isSealing = false; // Loading bitti
+    });
+
+    if (!mounted) return;
+
+    _showResultDialog(selection);
+  }
+
+  void _showLimitDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: Text("Kader Mühürlendi", style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed)),
+        content: Text("Bugünlük kart hakkın doldu. Yarın gel veya Üstat seviyesine geç.", style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            child: const Text("ANLADIM", style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResultDialog(TarotSelection selection) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -88,11 +107,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                   children: [
                      Text(
                        "KADERİN YANSIMASI", 
-                       style: AppTheme.orbitronStyle.copyWith(
-                         color: AppTheme.neonCyan, 
-                         fontSize: 20,
-                         shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 15)]
-                       ),
+                       style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan, shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 15)]),
                        textAlign: TextAlign.center,
                      ),
                      const SizedBox(height: 30),
@@ -113,9 +128,8 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                      
                      const SizedBox(height: 30),
                      
-                     // GİZEMLİ METİN (Kart ismi gizli)
                      Text(
-                       "\"${selection.card.meaning}\"", // Sadece anlam
+                       "\"${selection.card.meaning}\"", 
                        textAlign: TextAlign.center,
                        style: GoogleFonts.crimsonText( 
                          color: Colors.white.withOpacity(0.95),
@@ -127,18 +141,29 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                      
                      const SizedBox(height: 30),
                      
+                     // PAYLAŞ BUTONU
+                     SizedBox(
+                       width: double.infinity,
+                       child: ElevatedButton.icon(
+                         style: ElevatedButton.styleFrom(
+                           backgroundColor: AppTheme.neonPurple,
+                           padding: const EdgeInsets.symmetric(vertical: 12),
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
+                         ),
+                         icon: const Icon(Icons.share, color: Colors.white),
+                         label: Text("ENERJİYİ PAYLAŞ", style: AppTextStyles.button.copyWith(color: Colors.white)),
+                         onPressed: () {
+                           Share.share('Mistik AI bana bugün "${selection.card.name}" kartını seçti. Anlamı: ${selection.card.meaning}. Sen de kozmik rehberini keşfet! 🔮✨');
+                         },
+                       ),
+                     ),
+                     const SizedBox(height: 15),
+                     
                      GestureDetector(
                        onTap: () => Navigator.of(context).pop(),
                        child: Container(
                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                         decoration: BoxDecoration(
-                           border: Border.all(color: Colors.white24),
-                           borderRadius: BorderRadius.circular(30)
-                         ),
-                         child: Text(
-                           "MÜHRÜ KAPAT",
-                           style: GoogleFonts.inter(color: Colors.white60, letterSpacing: 2, fontSize: 10),
-                         ),
+                         child: Text("MÜHRÜ KAPAT", style: AppTextStyles.bodySmall.copyWith(letterSpacing: 2)),
                        ),
                      )
                   ],
@@ -156,7 +181,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text("KEHANET", style: AppTheme.orbitronStyle.copyWith(letterSpacing: 2)),
+        title: Text("KEHANET", style: AppTextStyles.h2.copyWith(letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
@@ -168,7 +193,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
             children: [
               // RİTÜEL ALANI
               GestureDetector(
-                onTap: _revealProphecy, // Trigger function
+                onTap: _isSealing ? null : _revealProphecy, 
                 child: Container(
                   width: 250, 
                   height: 390,
@@ -183,26 +208,41 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Card Back Image
                         Image.asset(
                           'assets/tarot/card_back.jpg',
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF151026)),
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            color: const Color(0xFF151026),
+                            child: const Center(child: Icon(Icons.help_outline, color: Colors.white24, size: 50)),
+                          ),
                         ),
-                        // Overlay
                         Container(color: Colors.black.withOpacity(0.2)),
-                        // Pulse Icon
-                        Center(
-                          child: Icon(Icons.fingerprint, color: AppTheme.neonPurple.withOpacity(0.7), size: 64)
-                              .animate(onPlay: (c)=>c.repeat(reverse: true))
-                              .scaleXY(end: 1.2, duration: 1.5.seconds)
-                              .fade(duration: 1.5.seconds),
-                        ),
+                        
+                        // ANIMASYON (Yükleniyor vs Normal)
+                        if (_isSealing)
+                          Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(color: AppTheme.neonPurple),
+                                const SizedBox(height: 20),
+                                Text("MÜHÜRLENİYOR...", style: AppTextStyles.button.copyWith(color: Colors.white70))
+                                    .animate(onPlay: (c)=>c.repeat()).fadeIn(duration: 500.ms)
+                              ],
+                            ),
+                          )
+                        else
+                          Center(
+                            child: Icon(Icons.fingerprint, color: AppTheme.neonPurple.withOpacity(0.7), size: 64)
+                                .animate(onPlay: (c)=>c.repeat(reverse: true))
+                                .scaleXY(end: 1.2, duration: 1.5.seconds)
+                                .fade(duration: 1.5.seconds),
+                          ),
                       ],
                     ),
                   ),
                 ).animate(onPlay: (c)=>c.repeat(reverse: true))
-                 .moveY(end: -15, duration: 3.seconds, curve: Curves.easeInOut), // Floating effect
+                 .moveY(end: -15, duration: 3.seconds, curve: Curves.easeInOut), 
               ),
 
               const SizedBox(height: 40),
@@ -213,12 +253,8 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Text(
-                    "ENERJİNİ KARTA MÜHÜRLE", // Updated Text
-                    style: AppTheme.orbitronStyle.copyWith(
-                      fontSize: 14,
-                      color: AppTheme.neonCyan,
-                      letterSpacing: 2,
-                    ),
+                    _isSealing ? "EVREN DİNLİYOR..." : "ENERJİNİ KARTA MÜHÜRLE",
+                    style: AppTextStyles.button.copyWith(color: AppTheme.neonCyan),
                   ),
                 ),
               ).animate().fadeIn(delay: 500.ms),

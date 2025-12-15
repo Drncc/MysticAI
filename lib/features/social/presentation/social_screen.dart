@@ -6,6 +6,7 @@ import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:tekno_mistik/core/utils/content_moderator.dart';
+import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 
 class SocialScreen extends StatefulWidget {
   const SocialScreen({super.key});
@@ -15,19 +16,56 @@ class SocialScreen extends StatefulWidget {
 }
 
 class _SocialScreenState extends State<SocialScreen> {
-  // Mock Data - Initial Posts
-  final List<Map<String, String>> _posts = [
-    {"user": "Gezgin #4829", "content": "Bugün Aşıklar kartı çektim ve eski sevgilim aradı! Tesadüf mü?", "tag": "Tarot", "likes": "35", "comments": "7"},
-    {"user": "Gezgin #1102", "content": "Meditasyon sırasında mor bir ışık gördüm. Anlamını bilen var mı?", "tag": "Meditasyon", "likes": "12", "comments": "3"},
-    {"user": "Gezgin #9931", "content": "Kozmik mağazadaki Kahin paketini aldım, analizler inanılmaz detaylı.", "tag": "Deneyim", "likes": "28", "comments": "5"},
-  ];
-
+  // Seed Content (Bot Posts)
+  final List<Map<String, String>> _posts = [];
   String? _profileImagePath;
 
   @override
   void initState() {
     super.initState();
     _loadProfileImage();
+    _loadSeedContent();
+  }
+
+  void _loadSeedContent() {
+    // Uygulama "Ghost Town" gibi görünmesin diye sahte veriler
+    _posts.addAll([
+      {
+        "user": "Gezgin #101",
+        "content": "Merkür retrosu beni mahvetti... Elektronik aletlerim isyan ediyor.",
+        "tag": "Retro",
+        "likes": "42",
+        "comments": "12"
+      },
+      {
+        "user": "Gezgin #88",
+        "content": "Güneş kartı geldi! Bugün enerjim tavan yaptı, herkese şifa diliyorum.",
+        "tag": "Tarot",
+        "likes": "128",
+        "comments": "34"
+      },
+      {
+        "user": "Gezgin #9931",
+        "content": "Schumann rezonansını takip eden var mı? Baş ağrısı yapıyor bugün.",
+        "tag": "Frekans",
+        "likes": "15",
+        "comments": "8"
+      },
+      {
+        "user": "Gezgin #420",
+        "content": "Meditasyon sırasında mor bir ışık gördüm. Anlamını bilen var mı?",
+        "tag": "Meditasyon",
+        "likes": "56",
+        "comments": "21"
+      },
+       {
+        "user": "Gezgin #777",
+        "content": "Kozmik mağazadaki Kahin paketini aldım, analizler inanılmaz detaylı.",
+        "tag": "Deneyim",
+        "likes": "89",
+        "comments": "5"
+      },
+    ]);
   }
 
   Future<void> _loadProfileImage() async {
@@ -54,12 +92,12 @@ class _SocialScreenState extends State<SocialScreen> {
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Klavye için kritik
+      isScrollControlled: true, 
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom, // Klavye payı
+            bottom: MediaQuery.of(context).viewInsets.bottom, 
           ),
           child: Container(
             decoration: BoxDecoration(
@@ -82,7 +120,7 @@ class _SocialScreenState extends State<SocialScreen> {
                           : const AssetImage('assets/tarot/0_fool_1.jpg'),
                     ),
                     const SizedBox(width: 15),
-                    Text("EVRENE MESAJ BIRAK", style: AppTheme.orbitronStyle.copyWith(color: Colors.white)),
+                    Text("EVRENE MESAJ BIRAK", style: AppTextStyles.h3.copyWith(color: Colors.white)),
                   ],
                 ),
                 const SizedBox(height: 15),
@@ -110,18 +148,16 @@ class _SocialScreenState extends State<SocialScreen> {
                     ),
                     onPressed: () {
                       if (postController.text.isNotEmpty) {
-                        // 1. KONTROL: Güvenli mi?
                         if (ContentModerator.isSafe(postController.text)) {
                           _addNewPost(postController.text);
                           Navigator.pop(context);
                         } else {
-                          // YASAKLI: Uyarı Ver
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: const Color(0xFF1E1E2C),
-                              title: Text("Negatif Enerji Tespit Edildi", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed, fontSize: 16)),
-                              content: Text("Mesajın, kozmik topluluk kurallarımıza uymayan kelimeler içeriyor. Lütfen ifadelerini arındır.", style: GoogleFonts.inter(color: Colors.white70)),
+                              title: Text("Negatif Enerji Tespit Edildi", style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed, fontSize: 16)),
+                              content: Text("Mesajın, kozmik topluluk kurallarımıza uymayan kelimeler içeriyor. Lütfen ifadelerini arındır.", style: AppTextStyles.bodyMedium),
                               actions: [
                                 TextButton(child: Text("TAMAM", style: TextStyle(color: AppTheme.neonCyan)), onPressed: () => Navigator.pop(ctx)),
                               ],
@@ -130,7 +166,7 @@ class _SocialScreenState extends State<SocialScreen> {
                         }
                       }
                     },
-                    child: Text("SİNYALİ GÖNDER", style: AppTheme.orbitronStyle.copyWith(fontWeight: FontWeight.bold)),
+                    child: Text("SİNYALİ GÖNDER", style: AppTextStyles.button),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -148,15 +184,15 @@ class _SocialScreenState extends State<SocialScreen> {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 100), // Nav bar clearance
+          padding: const EdgeInsets.only(bottom: 100), 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
-              // SECTION 1: ASTROLOGER INSIGHTS as previously implemented
+              // SECTION 1: ASTROLOGER INSIGHTS
                Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text("YILDIZ REHBERLERİ", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonCyan, fontSize: 14, letterSpacing: 1)),
+                child: Text("YILDIZ REHBERLERİ", style: AppTextStyles.button.copyWith(color: AppTheme.neonCyan, fontSize: 14)),
               ).animate().fadeIn().slideX(),
               const SizedBox(height: 15),
               
@@ -179,7 +215,7 @@ class _SocialScreenState extends State<SocialScreen> {
               // SECTION 2: TRAVELER FEED
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text("GEZGİN AKIŞI", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonPurple, fontSize: 14, letterSpacing: 1)),
+                child: Text("GEZGİN AKIŞI", style: AppTextStyles.button.copyWith(color: AppTheme.neonPurple, fontSize: 14)),
               ).animate().fadeIn(delay: 200.ms).slideX(),
               const SizedBox(height: 15),
 
@@ -204,11 +240,11 @@ class _SocialScreenState extends State<SocialScreen> {
         ),
       ),
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 80.0, right: 10.0), // Navigasyon Bar'ın üzerine çıkar
+        padding: const EdgeInsets.only(bottom: 80.0, right: 10.0), 
         child: FloatingActionButton(
-          backgroundColor: Colors.transparent, // Gradient için şeffaf
+          backgroundColor: Colors.transparent, 
           elevation: 10,
-          onPressed: () => _showPostDialog(context), // Fonksiyonu tetikle
+          onPressed: () => _showPostDialog(context),
           child: Container(
             width: 60,
             height: 60,
@@ -239,11 +275,11 @@ class _SocialScreenState extends State<SocialScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(name, style: AppTheme.orbitronStyle.copyWith(fontSize: 20, color: glowColor)),
+                Text(name, style: AppTextStyles.h3.copyWith(fontSize: 20, color: glowColor)),
                 const SizedBox(height: 20),
                 Text(
                   dailyMessage,
-                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 16, height: 1.5),
+                  style: AppTextStyles.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
@@ -264,15 +300,14 @@ class _SocialScreenState extends State<SocialScreen> {
                 border: Border.all(color: glowColor.withOpacity(0.5), width: 2),
                 boxShadow: [BoxShadow(color: glowColor.withOpacity(0.2), blurRadius: 10)],
                 image: DecorationImage(
-                   // Placeholder logic since user asked for Mock Images
                    image: const NetworkImage("https://picsum.photos/100"), 
                    fit: BoxFit.cover
                 )
               ),
-              child: const Center(child: Icon(Icons.person, color: Colors.white38)), // Fallback if network fails
+              child: const Center(child: Icon(Icons.person, color: Colors.white38)), 
             ),
             const SizedBox(height: 8),
-            Text(name, style: GoogleFonts.inter(fontSize: 10, color: Colors.white70)),
+            Text(name, style: AppTextStyles.bodySmall.copyWith(fontSize: 10)),
           ],
         ),
       ),
@@ -308,9 +343,8 @@ class _SocialPostCardState extends State<SocialPostCard> {
   @override
   void initState() {
     super.initState();
-    isLiked = false; // Varsayılan: Beğenilmemiş
+    isLiked = false; 
     likeCount = widget.initialLikes;
-    // Mock Comments (Sayıya göre fake üret)
     comments = List.generate(widget.initialComments, (index) => {
       'user': 'Gezgin #${1000 + index}',
       'text': index % 2 == 0 ? 'Harika bir enerji!' : 'Bunu hissettim...'
@@ -322,8 +356,8 @@ class _SocialPostCardState extends State<SocialPostCard> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
-        title: Text("Enerji İhlali Bildirimi", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed, fontSize: 16)),
-        content: Text("Bu paylaşım kozmik topluluk kurallarını ihlal mi ediyor? Bildirimin anonim olarak incelenecektir.", style: GoogleFonts.inter(color: Colors.white70)),
+        title: Text("Enerji İhlali Bildirimi", style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed, fontSize: 16)),
+        content: Text("Bu paylaşım kozmik topluluk kurallarını ihlal mi ediyor? Bildirimin anonim olarak incelenecektir.", style: AppTextStyles.bodyMedium),
         actions: [
           TextButton(
             child: const Text("VAZGEÇ", style: TextStyle(color: Colors.grey)), 
@@ -353,22 +387,20 @@ class _SocialPostCardState extends State<SocialPostCard> {
           return Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
             child: Container(
-              height: MediaQuery.of(context).size.height * 0.7, // %70 Ekran
+              height: MediaQuery.of(context).size.height * 0.7, 
               decoration: const BoxDecoration(
-                color: Color(0xFF1E1E2C),
+                color: Color(0xFF1E1E2C), // Slightly lighter black as requested
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                 border: Border(top: BorderSide(color: Colors.cyanAccent, width: 1))
               ),
               child: Column(
                 children: [
-                  // HEADER
                   Padding(
                     padding: const EdgeInsets.all(15.0),
-                    child: Text("Yorumlar", style: AppTheme.orbitronStyle.copyWith(color: Colors.white)),
+                    child: Text("Yorumlar", style: AppTextStyles.h3),
                   ),
                   const Divider(color: Colors.white10),
 
-                  // COMMENT LIST
                   Expanded(
                     child: ListView.builder(
                       itemCount: comments.length,
@@ -382,13 +414,12 @@ class _SocialPostCardState extends State<SocialPostCard> {
                             child: const Icon(Icons.person, color: Colors.cyanAccent, size: 20),
                           ),
                           title: Text(comment['user'] ?? 'Anonim', style: const TextStyle(color: Colors.cyanAccent, fontSize: 12)),
-                          subtitle: Text(comment['text'] ?? '', style: GoogleFonts.inter(color: Colors.white70)),
+                          subtitle: Text(comment['text'] ?? '', style: AppTextStyles.bodyMedium),
                         );
                       },
                     ),
                   ),
 
-                  // INPUT AREA
                   Padding(
                     padding: const EdgeInsets.all(10),
                     child: Row(
@@ -418,7 +449,6 @@ class _SocialPostCardState extends State<SocialPostCard> {
                                     "text": commentController.text
                                   });
                                 });
-                                // Parent state'i de güncelle ki sayı değişsin
                                 setState(() {}); 
                                 commentController.clear();
                               } else {
@@ -451,12 +481,11 @@ class _SocialPostCardState extends State<SocialPostCard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // HEADER
               Row(
                 children: [
                   CircleAvatar(radius: 12, backgroundColor: Colors.white24, child: const Icon(Icons.person, size: 14, color: Colors.white)),
                   const SizedBox(width: 8),
-                  Text(widget.username, style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonCyan, fontSize: 12)),
+                  Text(widget.username, style: AppTextStyles.button.copyWith(color: AppTheme.neonCyan, fontSize: 12)),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -466,16 +495,13 @@ class _SocialPostCardState extends State<SocialPostCard> {
                 ],
               ),
               const SizedBox(height: 10),
-              // CONTENT
               Text(
                 widget.content,
-                style: GoogleFonts.inter(color: Colors.white.withOpacity(0.9), fontSize: 13, height: 1.4),
+                style: AppTextStyles.bodyMedium,
               ),
               const SizedBox(height: 15),
-              // ACTIONS
               Row(
                 children: [
-                  // LIKE BUTTON
                   GestureDetector(
                     onTap: () {
                       setState(() {
@@ -498,7 +524,6 @@ class _SocialPostCardState extends State<SocialPostCard> {
                   
                   const SizedBox(width: 20),
 
-                  // COMMENT BUTTON
                   GestureDetector(
                     onTap: _showCommentDialog,
                     child: Row(
@@ -512,7 +537,6 @@ class _SocialPostCardState extends State<SocialPostCard> {
 
                   const Spacer(),
 
-                  // REPORT BUTTON
                   IconButton(
                     icon: const Icon(Icons.flag_outlined, color: Colors.white38, size: 20),
                     constraints: const BoxConstraints(),

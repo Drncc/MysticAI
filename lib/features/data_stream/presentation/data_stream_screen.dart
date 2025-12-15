@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
+import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
+import 'package:tekno_mistik/features/data_stream/presentation/widgets/cosmic_lab_sheet.dart';
 
 class DataStreamScreen extends ConsumerStatefulWidget {
   const DataStreamScreen({super.key});
@@ -40,24 +42,19 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
   }
 
   void _startSensorSimulation() {
-    // Initial Random Seed
     final random = Random();
     _lunarPhase = 40 + random.nextDouble() * 50; 
     _isLunarGrowing = random.nextBool();
     _schumannHz = 7.83 + (random.nextDouble() * 1.0 - 0.5);
-    _solarKp = random.nextInt(6); // Mostly normal days
+    _solarKp = random.nextInt(6); 
 
-    _simulationTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) { // Slower update for Lab Strip
+    _simulationTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) {
       if (!mounted) return;
       setState(() {
         final r = Random();
-        // Existing
         _magneticField = 40.0 + r.nextDouble() * 15.0 - 7.5; 
+        _schumannHz = 7.83 + (r.nextDouble() * 0.4 - 0.2); 
         
-        // Lab Strip Simulation (Subtle changes)
-        _schumannHz = 7.83 + (r.nextDouble() * 0.4 - 0.2); // Small fluctuation
-        
-        // Chaos (depends on Solar Kp slightly)
         double chaosBase = (_solarKp * 5.0) + (r.nextDouble() * 5);
         _chaosLevel = (_chaosLevel * 0.9 + chaosBase * 0.1).clamp(0.0, 100.0);
       });
@@ -68,6 +65,17 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
     if (kp < 4) return Colors.greenAccent;
     if (kp < 6) return Colors.orangeAccent;
     return Colors.redAccent;
+  }
+
+  String _getMagneticComment(double val) {
+    if (val > 50) return "Yüksek Enerji: Ani kararlardan kaçın.";
+    if (val < 40) return "Düşük Akı: İçe dönmek için ideal.";
+    return "Dengeli Akış: Üretkenlik için uygun.";
+  }
+
+  String _getChaosComment(double val) {
+    if (val > 20) return "Türbülans: Risk alma.";
+    return "Stabil: Evren seninle uyumlu.";
   }
 
   @override
@@ -88,38 +96,19 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
               // HEADER
               Text(
                 "HOŞGELDİN,",
-                style: AppTheme.orbitronStyle.copyWith(
-                  fontSize: 18,
-                  color: Colors.white70,
-                  letterSpacing: 2,
-                ),
+                style: AppTextStyles.h3.copyWith(color: Colors.white70, fontSize: 18),
               ).animate().fadeIn().slideX(begin: -0.1),
               const SizedBox(height: 4),
               Wrap(
                 children: [
-                  Text(
-                    "$profession ",
-                    style: AppTheme.orbitronStyle.copyWith(
-                      fontSize: 24,
-                      color: AppTheme.neonPurple,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    "$userName.",
-                    style: AppTheme.orbitronStyle.copyWith(
-                      fontSize: 24,
-                      color: AppTheme.neonCyan,
-                      fontWeight: FontWeight.bold,
-                      shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 20)],
-                    ),
-                  ),
+                  Text("$profession ", style: AppTextStyles.h2.copyWith(color: AppTheme.neonPurple)),
+                  Text("$userName.", style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan, shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 20)])),
                 ],
               ).animate().fadeIn(delay: 200.ms).slideX(begin: -0.1),
               
               const SizedBox(height: 20),
 
-              // KOZMİK LABORATUVAR ŞERİDİ (NEW)
+              // KOZMİK LABORATUVAR ŞERİDİ
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
@@ -128,6 +117,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     _buildCosmicBadge(
                       title: "AY FAZI",
                       value: "%${_lunarPhase.toInt()} ${_isLunarGrowing ? 'BÜYÜYEN' : 'KÜÇÜLEN'}",
+                      comment: _isLunarGrowing ? "Yeni başlangıçlar zamanı." : "Arınma zamanı.",
                       icon: Icons.nightlight_round,
                       color: Colors.cyanAccent,
                       delay: 300,
@@ -136,14 +126,16 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     _buildCosmicBadge(
                       title: "REZONANS",
                       value: "${_schumannHz.toStringAsFixed(2)} Hz",
-                      icon: Icons.graphic_eq, // Audio wave
+                      comment: "Stabil: Meditasyon için uygun.",
+                      icon: Icons.graphic_eq,
                       color: Colors.greenAccent,
                       delay: 400,
                     ),
                     const SizedBox(width: 12),
                     _buildCosmicBadge(
                       title: "SOLAR AKTİVİTE",
-                      value: "Kp: $_solarKp (${_solarKp > 4 ? 'FIRTINA' : 'STABİL'})",
+                      value: "Kp: $_solarKp",
+                      comment: _solarKp > 4 ? "Fırtına: Başın ağrıyabilir." : "Sakin: Enerji akışı temiz.",
                       icon: Icons.wb_sunny_outlined,
                       color: _getSolarColor(_solarKp),
                       delay: 500,
@@ -154,8 +146,8 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
 
               const SizedBox(height: 30),
 
-              // BİYOMETRİK DASHBOARD (Existing)
-              Text("YEREL VERİ SİNYALLERİ", style: TextStyle(color: Colors.white54, letterSpacing: 1.5, fontSize: 12)),
+              // BİYOMETRİK DASHBOARD
+              Text("YEREL VERİ SİNYALLERİ", style: AppTextStyles.bodySmall.copyWith(letterSpacing: 1.5)),
               const SizedBox(height: 15),
               
               GlassCard(
@@ -172,15 +164,9 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("MANYETİK AKI", style: GoogleFonts.inter(color: Colors.white60, fontSize: 12)),
-                              Text(
-                                "${_magneticField.toStringAsFixed(1)} µT", 
-                                style: GoogleFonts.orbitron( // Fixed Font
-                                  color: AppTheme.neonPurple, 
-                                  fontSize: 24, 
-                                  fontWeight: FontWeight.bold
-                                )
-                              ),
+                              Text("MANYETİK AKI", style: AppTextStyles.bodySmall),
+                              Text("${_magneticField.toStringAsFixed(1)} µT", style: AppTextStyles.h2.copyWith(color: AppTheme.neonPurple)),
+                              Text(_getMagneticComment(_magneticField), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
                           ),
                           Icon(Icons.waves, color: AppTheme.neonPurple, size: 32)
@@ -204,15 +190,9 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("EVRENSEL ENTROPİ", style: GoogleFonts.inter(color: Colors.white60, fontSize: 12)),
-                              Text(
-                                "%${_chaosLevel.toInt()}",
-                                style: GoogleFonts.orbitron(
-                                  color: AppTheme.neonCyan, 
-                                  fontSize: 24, 
-                                  fontWeight: FontWeight.bold
-                                )
-                              ),
+                              Text("EVRENSEL ENTROPİ", style: AppTextStyles.bodySmall),
+                              Text("%${_chaosLevel.toInt()}", style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan)),
+                              Text(_getChaosComment(_chaosLevel), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
                           ),
                           Icon(Icons.grain, color: AppTheme.neonCyan, size: 32)
@@ -232,12 +212,54 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                 ),
               ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1),
 
+              const SizedBox(height: 20),
+              
+              // KOZMİK LABORATUVAR BUTONU (CLEAN DASHBOARD)
               const Spacer(),
               
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: GestureDetector(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (context) => const CosmicLabSheet(),
+                    );
+                  },
+                  child: Container(
+                    height: 70,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.neonPurple, Colors.deepPurple],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(color: AppTheme.neonPurple.withOpacity(0.4), blurRadius: 20, spreadRadius: 2)
+                      ]
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.science, color: Colors.white, size: 28),
+                        const SizedBox(width: 15),
+                        Text(
+                          "KOZMİK LABORATUVARI AÇ", 
+                          style: AppTextStyles.button.copyWith(color: Colors.white, letterSpacing: 1.5)
+                        ),
+                      ],
+                    ),
+                  ).animate(onPlay: (c)=>c.repeat(reverse: true)).shimmer(duration: 3.seconds, delay: 2.seconds),
+                ),
+              ),
+
               Center(
                 child: Text(
                   "SİSTEM SENKRONİZE EDİLİYOR...",
-                  style: GoogleFonts.inter(color: Colors.white24, fontSize: 10, letterSpacing: 2),
+                  style: AppTextStyles.bodySmall.copyWith(fontSize: 10, letterSpacing: 2, color: Colors.white24),
                 ).animate(onPlay: (c)=>c.repeat()).shimmer(duration: 3.seconds),
               ),
               const SizedBox(height: 20),
@@ -251,13 +273,15 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
   Widget _buildCosmicBadge({
     required String title, 
     required String value, 
+    required String comment,
     required IconData icon, 
     required Color color,
     required int delay
   }) {
     return Container(
-      width: 130, // Fixed width for uniformity
-      height: 100,
+      width: 160, 
+      height: 110,
+      margin: const EdgeInsets.only(right: 12),
       child: GlassCard(
         color: Colors.white.withOpacity(0.05),
         borderColor: color.withOpacity(0.3),
@@ -280,14 +304,11 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Text(
-                    value, 
-                    style: GoogleFonts.orbitron(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(title, style: AppTextStyles.bodySmall.copyWith(fontSize: 10, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 2),
+                  Text(value, style: AppTextStyles.h3.copyWith(fontSize: 14, color: Colors.white), maxLines: 1),
+                  const SizedBox(height: 2),
+                  Text(comment, style: AppTextStyles.bodySmall.copyWith(fontSize: 9, color: Colors.white60), maxLines: 2, overflow: TextOverflow.ellipsis),
                 ],
               )
             ],
@@ -295,7 +316,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
         ),
       ),
     ).animate(onPlay: (c)=>c.repeat(reverse: true))
-     .scaleXY(end: 1.02, duration: (2000 + delay).ms) // Breathing effect
+     .scaleXY(end: 1.02, duration: (2000 + delay).ms) // Nefes alma efekti
      .fadeIn(delay: delay.ms).slideX(begin: 0.1);
   }
 }

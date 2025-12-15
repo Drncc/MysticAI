@@ -1,15 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
+import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/features/oracle/presentation/providers/oracle_provider.dart';
 import 'package:tekno_mistik/features/oracle/presentation/widgets/complex_sigil.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 import 'package:tekno_mistik/core/services/limit_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class OracleScreen extends ConsumerStatefulWidget {
   const OracleScreen({super.key});
@@ -20,74 +22,89 @@ class OracleScreen extends ConsumerStatefulWidget {
 
 class _OracleScreenState extends ConsumerState<OracleScreen> {
   final TextEditingController _promptController = TextEditingController();
-  String? _lastQuestion; // To track the question for saving
+  final ScrollController _scrollController = ScrollController();
+  String? _lastQuestion;
+  
+  // TTS & Voice
+  late FlutterTts _flutterTts;
+  bool _isVoiceEnabled = false;
+  bool _isSpeaking = false;
 
-  void _sendMessage() {
-    final text = _promptController.text.trim();
+  final List<String> _suggestions = [
+    "Bugün enerjim nasıl?",
+    "Aşk hayatımda neler olacak?",
+    "Kariyerimde yükseliş var mı?",
+    "Rüyamda yılan gördüm, anlamı ne?",
+    "Hangi çakram tıkalı?",
+    "Ruh eşimle ne zaman tanışacağım?"
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initTts();
+  }
+
+  void _initTts() {
+    _flutterTts = FlutterTts();
+    
+    // Voice Characteristics
+    _flutterTts.setPitch(0.6); // Mistik/Kalın
+    _flutterTts.setSpeechRate(0.4); // Yavaş/Tane tane
+    
+    // Handlers
+    _flutterTts.setStartHandler(() {
+      setState(() => _isSpeaking = true);
+    });
+    
+    _flutterTts.setCompletionHandler(() {
+      setState(() => _isSpeaking = false);
+    });
+    
+    _flutterTts.setErrorHandler((msg) {
+      setState(() => _isSpeaking = false);
+    });
+  }
+  
+  @override
+  void dispose() {
+    _flutterTts.stop();
+    super.dispose();
+  }
+
+  void _speak(String text) async {
+    if (!_isVoiceEnabled) return;
+    await _flutterTts.stop();
+    if (text.isNotEmpty) {
+      await _flutterTts.speak(text);
+    }
+  }
+
+  void _backgroundImage() {} // Empty function removed
+
+  void _sendMessage({String? suggestion}) {
+    final text = suggestion ?? _promptController.text.trim();
     if (text.isEmpty) return;
 
-    // Limit Kontrolü
     if (!LimitService().canSendMessage) {
-      // Limit Doldu Dialogs
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E2C),
-          title: Text("Enerjin Tükendi", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.errorRed)),
-          content: Text("Gezgin, günlük kozmik soru hakkını doldurdun. Kahin seviyesine yükselerek sınırları kaldır.", style: GoogleFonts.inter(color: Colors.white70)),
-          actions: [
-            TextButton(
-              child: const Text("KAPAT", style: TextStyle(color: Colors.grey)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            TextButton(
-              child: const Text("MAĞAZAYA GİT", style: TextStyle(color: AppTheme.neonCyan)),
-              onPressed: () {
-                Navigator.pop(context);
-                // Direk Mağaza Sekmesine yönlendir (Index 2)
-                 // NOTE: MainWrapper should facilitate this navigation via GlobalKey or Provider, 
-                 // but for now we might rely on user manual nav, or if we have access to a provider for tab.
-                 // Assuming MainWrapper is parent, but standard practice:
-                 // Ideally use Riverpod to switch tab or navigation logic.
-                 // For now, simpler: Just pop. User can click Store manually.
-                 // OR better: Create a global Stream/Provider for navigation requests.
-                 // Let's stick to simple "KAPAT" or simple Pop for MVP stability, unless we edit main wrapper again.
-                 // Wait, Task says "Store sekmesine yönlendir".
-                 // I will implement a quick fix: Use a Riverpod provider for tab index if available, or just pop.
-                 // Given the constraints and lack of global nav provider yet, I will instruct user to go there or just pop. 
-                 // But wait, I can just update the tab index provider if I create one.
-                 // Actually, MainWrapper handles state locally. I cannot easily switch tab from here without a provider.
-                 // I will display the dialog, and user manually switches. 
-                 // REVISION: The user specifically asked "MAĞAZAYA GİT" button.
-                 // I will assume for now I cannot switch programmatically easily without major refactor.
-                 // I will leave it as Navigator.pop and maybe a SnackBar hint, or if I can access MainWrapper state.
-                 // Actually, I can use context.findAncestorStateOfType if MainWrapper was a parent, but it might be tricky with Riverpod structure.
-                 // I will just Pop dialog.
-              },
-            ),
-          ],
-        ),
-      );
+      _showLimitDialog();
       return;
     }
 
+    // Stop speaking if new message sent
+    _flutterTts.stop();
+
     final userSettings = ref.read(userSettingsProvider);
 
-    // Bağlam Zenginleştirme
-    // Bağlam Zenginleştirme
     String contextPrompt = "\n[GİZLİ BAĞLAM: Kullanıcı Adı: ${userSettings.name}. ";
     if (userSettings.age.isNotEmpty) contextPrompt += "Yaş: ${userSettings.age}. ";
     if (userSettings.profession.isNotEmpty) contextPrompt += "Meslek: ${userSettings.profession}. ";
     if (userSettings.maritalStatus.isNotEmpty) contextPrompt += "Medeni Durum: ${userSettings.maritalStatus}. ";
     if (userSettings.includeZodiacInOracle) contextPrompt += "Burç: ${userSettings.zodiacSign}. Astrolojik referanslar kullan. ";
     
-    // RETENTION & PERSONA INSTRUCTION
     contextPrompt += "Sen sadece cevap veren bir bot değil, sohbeti devam ettirmek isteyen meraklı bir arkadaşsın. Cevabını verdikten sonra MUTLAKA kullanıcıya konuyla ilgili yeni, kişisel ve merak uyandırıcı bir soru sor. Konuyu asla kapatma.";
-    
-    // LANGUAGE RULE
     contextPrompt += " YANIT DİLİ KURALI: Yanıtlarını SADECE standart Türkçe alfabesi ile ver. Asla Çince, Japonca, Kiril veya Latin olmayan başka karakterler kullanma. Kelimelerin arasına yabancı semboller karıştırma.]";
-
-    // Premium Logic for Prompt Length
+    
     if (LimitService().isPremium) {
       contextPrompt += " Cevabı detaylı, astrolojik transitleri içerecek şekilde uzun ver.";
     } else {
@@ -96,30 +113,42 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
 
     final String finalPrompt = "$text $contextPrompt";
 
-    // Soruyu kaydet (Cevap gelince eşleştirmek için)
     setState(() {
       _lastQuestion = text;
     });
 
     _promptController.clear();
     FocusScope.of(context).unfocus();
-    
-    // Increment Limit
     LimitService().incrementMessage();
     
     ref.read(oracleNotifierProvider.notifier).seekGuidance(finalPrompt, isPremium: LimitService().isPremium);
   }
 
+  void _showLimitDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: Text("Enerjin Tükendi", style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed)),
+        content: Text("Gezgin, günlük kozmik soru hakkını doldurdun. Kahin seviyesine yükselerek sınırları kaldır.", style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            child: const Text("KAPAT", style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _saveToHistory(String question, String answer) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> currentHistory = prefs.getStringList('oracle_chat_history') ?? [];
-
     final Map<String, String> newEntry = {
       'question': question,
-      'answer': answer, // Cevabı olduğu gibi veya kısaltarak
+      'answer': answer,
       'date': DateTime.now().toIso8601String(),
     };
-
     currentHistory.insert(0, jsonEncode(newEntry));
     await prefs.setStringList('oracle_chat_history', currentHistory); 
   }
@@ -128,32 +157,58 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
   Widget build(BuildContext context) {
     final oracleState = ref.watch(oracleNotifierProvider);
 
-    // Listen to state changes to capture the response
     ref.listen(oracleNotifierProvider, (previous, next) {
       if (next is AsyncData && next.value != null && _lastQuestion != null) {
-        // Cevap geldi, kaydet
         _saveToHistory(_lastQuestion!, next.value!);
-        _lastQuestion = null; // Reset
+        _lastQuestion = null;
+        HapticFeedback.lightImpact();
+        
+        // Speak Response
+        _speak(next.value!);
       }
     });
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text("ORACLE", style: AppTheme.orbitronStyle.copyWith(letterSpacing: 2)),
+        title: Text("ORACLE", style: AppTextStyles.h2.copyWith(letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              _isVoiceEnabled ? Icons.volume_up : Icons.volume_off, 
+              color: _isVoiceEnabled ? AppTheme.neonCyan : Colors.white24
+            ),
+            onPressed: () {
+              setState(() {
+                _isVoiceEnabled = !_isVoiceEnabled;
+                if (!_isVoiceEnabled) _flutterTts.stop();
+              });
+            },
+          )
+        ],
       ),
       body: Column(
         children: [
-          // 1. SIGIL (Oracle's Eye)
+          // 1. SIGIL
           Expanded(
             flex: 4,
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
+                   // Pulse Effect Container when speaking
+                   if (_isSpeaking)
+                    Container(
+                      width: 220, height: 220,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: AppTheme.neonCyan.withOpacity(0.1)),
+                    ).animate(onPlay: (c)=>c.repeat(reverse: true))
+                     .scaleXY(end: 1.3, duration: 800.ms)
+                     .fade(end: 0),
+
                    Container(
                      width: 180, height: 180,
                      decoration: BoxDecoration(
@@ -184,17 +239,10 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
                       padding: const EdgeInsets.all(20),
                       constraints: const BoxConstraints(minHeight: 150),
                       child: SingleChildScrollView(
-                        reverse: true, // Auto-scroll to bottom effectively for new content if aligned right, but here we want to see the start usually? 
-                        // Actually "Sohbet en alta kaysın" implies chat interface or auto-scroll. 
-                        // Since this is a single response area, maybe the user wants to see the typing effect?
-                        // Let's implement a scroll controller.
+                        controller: _scrollController,
                         child: Text(
                           response ?? "Kehanet için sorunu yönelt...",
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withOpacity(0.9), 
-                            height: 1.6, 
-                            fontSize: 16,
-                          ),
+                          style: AppTextStyles.bodyLarge,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -208,7 +256,7 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
                     children: [
                       Text(
                         "EVRENSEL VERİLER TOPLANIYOR...",
-                        style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonCyan, fontSize: 12),
+                        style: AppTextStyles.button.copyWith(color: AppTheme.neonCyan, fontSize: 12),
                         textAlign: TextAlign.center,
                       ).animate(onPlay: (c)=>c.repeat(reverse: true)).fadeIn(duration: 500.ms),
                       const SizedBox(height: 10),
@@ -223,37 +271,57 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
             ),
           ),
 
-          // 3. INPUT AREA
+          // 3. INPUT & SUGGESTIONS AREA
           Padding(
-            padding: const EdgeInsets.only(
-              bottom: 90.0, // Safe padding for BottomNav
-              left: 16, 
-              right: 16, 
-              top: 10
-            ),
-            child: GlassCard(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _promptController,
-                      style: const TextStyle(color: Colors.white),
-                      cursorColor: AppTheme.neonCyan,
-                      decoration: InputDecoration(
-                        hintText: "Sorunu Yaz...",
-                        hintStyle: TextStyle(color: Colors.white30, fontFamily: 'Inter'),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      ),
-                      onSubmitted: (_) => _sendMessage(),
+            padding: const EdgeInsets.only(bottom: 90.0, left: 16, right: 16, top: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!oracleState.isLoading)
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _suggestions.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ActionChip(
+                            backgroundColor: Colors.white.withOpacity(0.05),
+                            side: BorderSide(color: AppTheme.neonCyan.withOpacity(0.3)),
+                            label: Text(_suggestions[index], style: AppTextStyles.bodySmall.copyWith(color: AppTheme.neonCyan)),
+                            onPressed: () => _sendMessage(suggestion: _suggestions[index]),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(Icons.send_rounded, color: AppTheme.neonPurple),
-                    onPressed: _sendMessage,
-                  ).animate().scale(delay: 200.ms),
-                ],
-              ),
+                const SizedBox(height: 10),
+                GlassCard(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _promptController,
+                          style: AppTextStyles.bodyMedium,
+                          cursorColor: AppTheme.neonCyan,
+                          decoration: InputDecoration(
+                            hintText: "Sorunu Yaz...",
+                            hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white30),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                          ),
+                          onSubmitted: (_) => _sendMessage(),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.send_rounded, color: AppTheme.neonPurple),
+                        onPressed: () => _sendMessage(),
+                      ).animate().scale(delay: 200.ms),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

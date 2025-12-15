@@ -136,6 +136,15 @@ HEDEF: Kullanıcıya, verileri analiz edilen bir laboratuvar deneği gibi hisset
     }
   }
 
+  Future<String> analyzeDream(String dreamText) async {
+    try {
+      final systemPrompt = "Sen bir rüya tabircisisin. Bu rüyayı Carl Jung'un arketip sembolizmiyle ve mistik bir dille yorumla. Gelecekten bir haber veriyormuş gibi gizemli konuş. Kısa tut (Maks 3 cümle). YANIT DİLİ: SADECE TÜRKÇE.";
+      return await _callGroqApi(dreamText, systemPrompt);
+    } catch (e) {
+      return "Bilinçaltı frekansları parazitli. Tekrar dene.";
+    }
+  }
+
   Future<String> _callGroqApi(String userMessage, String systemPrompt) async {
     if (_apiKey.isEmpty) return "API Anahtarı eksik [ERR_NO_KEY].";
 
