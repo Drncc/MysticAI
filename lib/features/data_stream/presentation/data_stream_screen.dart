@@ -8,6 +8,7 @@ import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 import 'package:tekno_mistik/features/data_stream/presentation/widgets/cosmic_lab_sheet.dart';
 
 class DataStreamScreen extends ConsumerStatefulWidget {
@@ -80,6 +81,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
     final settings = ref.watch(userSettingsProvider);
     final userName = settings.name.isNotEmpty ? settings.name.toUpperCase() : "GEZGİN";
     final profession = settings.profession.isNotEmpty ? settings.profession.toUpperCase() : "BİLİNMEYEN";
@@ -95,7 +97,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
               const SizedBox(height: 10),
               // HEADER
               Text(
-                "HOŞGELDİN,",
+                tr.translate('welcome_simple'),
                 style: AppTextStyles.h3.copyWith(color: Colors.white70, fontSize: 18),
               ).animate().fadeIn().slideX(begin: -0.1),
               const SizedBox(height: 4),
@@ -115,7 +117,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                 child: Row(
                   children: [
                     _buildCosmicBadge(
-                      title: "AY FAZI",
+                      title: tr.translate('moon_phase_title'),
                       value: "%${_lunarPhase.toInt()} ${_isLunarGrowing ? 'BÜYÜYEN' : 'KÜÇÜLEN'}",
                       comment: _isLunarGrowing ? "Yeni başlangıçlar zamanı." : "Arınma zamanı.",
                       icon: Icons.nightlight_round,
@@ -124,7 +126,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     ),
                     const SizedBox(width: 12),
                     _buildCosmicBadge(
-                      title: "REZONANS",
+                      title: tr.translate('resonance_title'),
                       value: "${_schumannHz.toStringAsFixed(2)} Hz",
                       comment: "Stabil: Meditasyon için uygun.",
                       icon: Icons.graphic_eq,
@@ -133,7 +135,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     ),
                     const SizedBox(width: 12),
                     _buildCosmicBadge(
-                      title: "SOLAR AKTİVİTE",
+                      title: tr.translate('solar_activity_title'),
                       value: "Kp: $_solarKp",
                       comment: _solarKp > 4 ? "Fırtına: Başın ağrıyabilir." : "Sakin: Enerji akışı temiz.",
                       icon: Icons.wb_sunny_outlined,
@@ -147,7 +149,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
               const SizedBox(height: 30),
 
               // BİYOMETRİK DASHBOARD
-              Text("YEREL VERİ SİNYALLERİ", style: AppTextStyles.bodySmall.copyWith(letterSpacing: 1.5)),
+              Text(tr.translate('data_stream_title'), style: AppTextStyles.bodySmall.copyWith(letterSpacing: 1.5)),
               const SizedBox(height: 15),
               
               GlassCard(
@@ -164,7 +166,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("MANYETİK AKI", style: AppTextStyles.bodySmall),
+                              Text(tr.translate('magnetic_flux_label').toUpperCase(), style: AppTextStyles.bodySmall),
                               Text("${_magneticField.toStringAsFixed(1)} µT", style: AppTextStyles.h2.copyWith(color: AppTheme.neonPurple)),
                               Text(_getMagneticComment(_magneticField), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
@@ -190,7 +192,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text("EVRENSEL ENTROPİ", style: AppTextStyles.bodySmall),
+                              Text(tr.translate('entropy_label'), style: AppTextStyles.bodySmall),
                               Text("%${_chaosLevel.toInt()}", style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan)),
                               Text(_getChaosComment(_chaosLevel), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
@@ -247,7 +249,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                         const Icon(Icons.science, color: Colors.white, size: 28),
                         const SizedBox(width: 15),
                         Text(
-                          "KOZMİK LABORATUVARI AÇ", 
+                          tr.translate('open_cosmic_lab_btn'), 
                           style: AppTextStyles.button.copyWith(color: Colors.white, letterSpacing: 1.5)
                         ),
                       ],
@@ -258,7 +260,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
 
               Center(
                 child: Text(
-                  "SİSTEM SENKRONİZE EDİLİYOR...",
+                  tr.translate('system_syncing_msg'),
                   style: AppTextStyles.bodySmall.copyWith(fontSize: 10, letterSpacing: 2, color: Colors.white24),
                 ).animate(onPlay: (c)=>c.repeat()).shimmer(duration: 3.seconds),
               ),

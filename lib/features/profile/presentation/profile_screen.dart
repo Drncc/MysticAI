@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -45,6 +46,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final settings = ref.watch(userSettingsProvider);
     final notifier = ref.read(userSettingsProvider.notifier);
+    final tr = AppLocalizations.of(context); // Localization helper
 
     const cardColor = Color(0xFF1E1E1E);
     const accentColor = Color(0xFFBB86FC);
@@ -56,6 +58,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         backgroundColor: const Color(0xFF121212),
         elevation: 0,
         centerTitle: true,
+        actions: [
+          // LANGUAGE SELECTOR
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: DropdownButton<Locale>(
+              value: ref.watch(localeProvider),
+              dropdownColor: const Color(0xFF1E1E1E),
+              icon: const Icon(Icons.language, color: accentColor),
+              underline: Container(),
+              onChanged: (Locale? newLocale) {
+                if (newLocale != null) {
+                  ref.read(localeProvider.notifier).switchLanguage(newLocale);
+                }
+              },
+              items: const [
+                DropdownMenuItem(
+                  value: Locale('tr', 'TR'),
+                  child: Text('TR', style: TextStyle(color: Colors.white, fontSize: 12)),
+                ),
+                DropdownMenuItem(
+                  value: Locale('en', 'US'),
+                  child: Text('EN', style: TextStyle(color: Colors.white, fontSize: 12)),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -73,6 +102,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: Column(
                 children: [
+                   // ... (Inputs kept hardcoded as requested)
                   _buildModernTextField(
                     label: "Ad Soyad",
                     initialValue: settings.name,
@@ -202,9 +232,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
               child: Column(
                 children: [
-                  _buildBiometricRow("Manyetik Akı", "${_magneticField.toStringAsFixed(1)} µT", _magneticField / 60, Colors.cyanAccent),
+                  _buildBiometricRow(tr.translate('magnetic_flux_label'), "${_magneticField.toStringAsFixed(1)} µT", _magneticField / 60, Colors.cyanAccent),
                   const SizedBox(height: 16),
-                  _buildBiometricRow("Entropi Seviyesi", "${_chaosLevel.toInt()}%", _chaosLevel / 100, Colors.redAccent),
+                  _buildBiometricRow(tr.translate('entropy_label'), "${_chaosLevel.toInt()}%", _chaosLevel / 100, Colors.redAccent),
                 ],
               ),
             ),

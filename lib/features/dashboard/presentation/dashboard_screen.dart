@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:screenshot/screenshot.dart';
@@ -25,14 +26,19 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   int _currentIndex = 0;
 
-  final _pages = const [
-    DashboardView(),
-    OracleScreen(),
-    ProfileScreen(),
+  // Removed const to ensure widgets can be refreshed if needed (though const widgets should still rebuild on InheritedWidget change)
+  final _pages = [
+    const DashboardView(),
+    const OracleScreen(),
+    const ProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    // Explicitly watch locale to force rebuild of this screen (and its children) when language changes
+    // This is the "Nuclear Option" requested to guarantee UI update.
+    ref.watch(localeProvider); 
+    
     return Scaffold(
       backgroundColor: Colors.transparent, // Transparent for LivingBackground
       extendBody: true, // Navigation bar flows over background
@@ -166,8 +172,12 @@ class _DashboardViewState extends State<DashboardView> {
       );
   }
 
+// ... (keeping imports and structure same)
+
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context); // Helper access
+    
     return SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -176,21 +186,65 @@ class _DashboardViewState extends State<DashboardView> {
             children: [
               // Header
               const SizedBox(height: 20),
-              Text(
-                "HOŞ GELDİN,\nGEZGİN.",
-                style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                  height: 1.1,
-                  shadows: [
-                    Shadow(
-                      color: AppTheme.neonCyan.withValues(alpha: 0.5),
-                      blurRadius: 10,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      tr.translate('welcome_title'),
+                      style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                        height: 1.1,
+                        fontSize: 32, // Ensuring it fits
+                        shadows: [
+                          Shadow(
+                            color: AppTheme.neonCyan.withValues(alpha: 0.5),
+                            blurRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ).animate()
+                     .fadeIn(duration: 800.ms)
+                     .slideX(begin: -0.1, curve: Curves.easeOutExpo)
+                     .shimmer(duration: 2.seconds, delay: 1.seconds),
+                  ),
+                  
+                  // LANGUAGE SELECTOR
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.deepSpace.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: AppTheme.neonCyan.withValues(alpha: 0.3)),
                     ),
-                  ],
-                ),
-              ).animate()
-               .fadeIn(duration: 800.ms)
-               .slideX(begin: -0.1, curve: Curves.easeOutExpo)
-               .shimmer(duration: 2.seconds, delay: 1.seconds),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<Locale>(
+                        value: ref.watch(localeProvider),
+                        dropdownColor: const Color(0xFF1E1E1E),
+                        icon: const Icon(Icons.language, color: AppTheme.neonCyan, size: 20),
+                        isDense: true,
+                        style: GoogleFonts.orbitron(color: Colors.white, fontSize: 12),
+                        onChanged: (Locale? newLocale) {
+                          if (newLocale != null) {
+                            ref.read(localeProvider.notifier).switchLanguage(newLocale);
+                          }
+                        },
+                        items: const [
+                          DropdownMenuItem(
+                            value: Locale('tr', 'TR'),
+                            child: Text('TR'),
+                          ),
+                          DropdownMenuItem(
+                            value: Locale('en', 'US'),
+                            child: Text('EN'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ).animate().fadeIn(delay: 1.seconds),
+                ],
+              ),
               
               const SizedBox(height: 20),
 
@@ -246,7 +300,7 @@ class _DashboardViewState extends State<DashboardView> {
 
               // Data Cards Section
               Text(
-                "ANLIK VERİ AKIŞI",
+                tr.translate('local_data_signals'),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: AppTheme.neonCyan.withValues(alpha: 0.6),
                   letterSpacing: 1.5,
@@ -255,19 +309,19 @@ class _DashboardViewState extends State<DashboardView> {
               const SizedBox(height: 10),
 
               // Cards
-              const GlassCard(
+              GlassCard( // Converted to normal widget to use variable
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text("BİYO-RİTİM", style: TextStyle(color: Colors.white70)),
-                        Icon(Icons.monitor_heart_outlined, color: AppTheme.neonPurple),
+                        Text(tr.translate('solar_activity_label'), style: const TextStyle(color: Colors.white70)),
+                        const Icon(Icons.monitor_heart_outlined, color: AppTheme.neonPurple),
                       ],
                     ),
-                    SizedBox(height: 10),
-                    Text(
+                    const SizedBox(height: 10),
+                    const Text(
                       "%87", 
                       style: TextStyle(
                         fontSize: 32, 
@@ -276,34 +330,34 @@ class _DashboardViewState extends State<DashboardView> {
                       ),
                     ),
                     Text(
-                      "Senkronizasyon ideal seviyede.",
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      tr.translate('solar_activity_desc'),
+                      style: const TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ],
                 ),
               ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.1),
 
-              const GlassCard(
+              GlassCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                         Text("RUHSAL REZONANS", style: TextStyle(color: Colors.white70)),
-                         Icon(Icons.waves, color: AppTheme.neonCyan),
+                         Text(tr.translate('resonance_label'), style: const TextStyle(color: Colors.white70)),
+                         const Icon(Icons.waves, color: AppTheme.neonCyan),
                       ],
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Text(
-                      "DURGUN", 
-                      style: TextStyle(
+                      tr.translate('resonance_desc'), 
+                      style: const TextStyle(
                         fontSize: 24, 
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                     Text(
+                     const Text(
                       "Dış etkenler minimum düzeyde.",
                       style: TextStyle(color: Colors.white38, fontSize: 12),
                     ),
@@ -311,27 +365,27 @@ class _DashboardViewState extends State<DashboardView> {
                 ),
               ).animate().fadeIn(delay: 700.ms).slideY(begin: 0.1),
 
-              const GlassCard(
+              GlassCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                         Text("DİJİTAL ENTROPİ", style: TextStyle(color: Colors.white70)),
-                         Icon(Icons.data_usage, color: AppTheme.errorRed),
+                         Text(tr.translate('entropy_label'), style: const TextStyle(color: Colors.white70)),
+                         const Icon(Icons.data_usage, color: AppTheme.errorRed),
                       ],
                     ),
-                    SizedBox(height: 10),
-                    LinearProgressIndicator(
+                    const SizedBox(height: 10),
+                    const LinearProgressIndicator(
                       value: 0.3,
                       backgroundColor: Colors.white10,
                       color: AppTheme.errorRed,
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                      Text(
-                      "Veri gürültüsü analiz ediliyor...",
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      tr.translate('entropy_desc'),
+                      style: const TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ],
                 ),
@@ -353,7 +407,7 @@ class _DashboardViewState extends State<DashboardView> {
                       children: [
                          const Icon(Icons.auto_awesome, color: AppTheme.neonPurple),
                          const SizedBox(width: 10),
-                         Text("ENERJİ İZDÜŞÜMÜNÜ BAŞLAT", style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonPurple)),
+                         Text(tr.translate('moon_phase_label'), style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonPurple)),
                       ],
                     ),
                   ),

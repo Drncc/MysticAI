@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tekno_mistik/core/config/env_config.dart';
 import 'package:tekno_mistik/core/services/notification_service.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/auth/presentation/login_screen.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // Load Env
-  // await dotenv.load(fileName: ".env"); // Using EnvConfig consts instead for safety
+  await EnvConfig.init();
   
   // Init Supabase
   await Supabase.initialize(
@@ -27,16 +29,29 @@ void main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp(
       title: 'MysticAI',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const LoginScreen(), // UPDATED: Starts with Login Screen
+      locale: locale,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('tr', 'TR'),
+        Locale('en', 'US'),
+      ],
+      home: const LoginScreen(), 
     );
   }
 }

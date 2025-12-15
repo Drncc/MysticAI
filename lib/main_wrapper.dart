@@ -9,6 +9,7 @@ import 'package:tekno_mistik/features/tarot/presentation/prophecy_screen.dart';
 import 'package:tekno_mistik/features/store/presentation/store_screen.dart'; 
 import 'package:tekno_mistik/features/social/presentation/social_screen.dart'; // NEW IMPORT
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class MainWrapper extends ConsumerStatefulWidget {
   const MainWrapper({super.key});
@@ -27,14 +28,6 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     const StoreScreen(),
     const ProphecyScreen(),
     const SocialScreen(), // NEW TAB (Index 4)
-  ];
-
-  final List<String> _titles = [
-    "VERİ AKIŞI",
-    "ORACLE",
-    "KOZMİK MAĞAZA",
-    "KEHANET",
-    "TOPLULUK",
   ];
 
   @override
@@ -59,19 +52,63 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     _pageController.jumpToPage(index);
     HapticFeedback.lightImpact();
   }
-
+  
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+    final titles = [
+      tr.translate('nav_data'),
+      tr.translate('nav_oracle'),
+      tr.translate('nav_store'),
+      tr.translate('nav_prophecy'),
+      tr.translate('nav_social'),
+    ];
+
     return Scaffold(
       extendBody: true,
       resizeToAvoidBottomInset: false, 
       appBar: AppBar(
-        title: Text(_titles[_currentIndex], style: AppTheme.orbitronStyle.copyWith(fontSize: 16, letterSpacing: 2)),
+        title: Text(titles[_currentIndex], style: AppTheme.orbitronStyle.copyWith(fontSize: 16, letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: Colors.transparent, // Transparent for gradient
         elevation: 0,
         leading: Icon(Icons.auto_awesome, color: AppTheme.neonCyan.withOpacity(0.5)), // Small Logo
         actions: [
+          // LANGUAGE SELECTOR ICON
+          IconButton(
+            icon: const Icon(Icons.language, color: AppTheme.neonCyan),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  backgroundColor: const Color(0xFF1E1E1E),
+                  title: Text('Dil Seçimi / Language', style: AppTheme.orbitronStyle.copyWith(color: AppTheme.neonCyan)),
+                  children: [
+                    SimpleDialogOption(
+                      onPressed: () {
+                        ref.read(localeProvider.notifier).switchLanguage(const Locale('tr', 'TR'));
+                        Navigator.pop(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text('Türkçe (TR)', style: AppTheme.interStyle.copyWith(color: Colors.white)),
+                      ),
+                    ),
+                    SimpleDialogOption(
+                      onPressed: () {
+                        ref.read(localeProvider.notifier).switchLanguage(const Locale('en', 'US'));
+                        Navigator.pop(context);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text('English (EN)', style: AppTheme.interStyle.copyWith(color: Colors.white)),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.settings, color: AppTheme.neonPurple), 
             onPressed: () {
@@ -134,26 +171,26 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
             unselectedItemColor: AppTheme.neonPurple.withOpacity(0.4),
             selectedLabelStyle: AppTheme.orbitronStyle.copyWith(fontSize: 10, fontWeight: FontWeight.bold),
             unselectedLabelStyle: AppTheme.orbitronStyle.copyWith(fontSize: 10),
-            items: const [
+            items: [
               BottomNavigationBarItem(
-                icon: Icon(Icons.waves),
-                label: 'VERİ',
+                icon: const Icon(Icons.waves),
+                label: tr.translate('nav_data'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.remove_red_eye),
-                label: 'ORACLE',
+                icon: const Icon(Icons.remove_red_eye),
+                label: tr.translate('nav_oracle'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.star), 
-                label: 'MAĞAZA',
+                icon: const Icon(Icons.star), 
+                label: tr.translate('nav_store'),
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.auto_awesome),
-                label: 'KEHANET',
+                icon: const Icon(Icons.auto_awesome),
+                label: tr.translate('nav_prophecy'),
               ),
               BottomNavigationBarItem( // NEW TAB
-                icon: Icon(Icons.public),
-                label: 'SOSYAL',
+                icon: const Icon(Icons.public),
+                label: tr.translate('nav_social'),
               ),
             ],
           ),
