@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'dart:io'; // Platform kontrolü
+import 'package:tekno_mistik/core/services/oracle_service.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
 class DreamScreen extends StatefulWidget {
@@ -24,25 +26,27 @@ class _DreamScreenState extends State<DreamScreen> {
   }
 
   Future<void> _initTts() async {
-    // 1. Dili Türkçe yapmaya zorla
-    await flutterTts.setLanguage("tr-TR");
+    // 1. Reset TTS settings
+    await flutterTts.setVolume(1.0);
     
-    // 2. Platforma göre hız ayarı (Windows Hassas Ayar)
+    // 2. Platform specific settings
     if (Platform.isWindows) {
-      // Windows'ta 1.0 standart hızdır. Bunun altı bazen hecelemeye döner.
       await flutterTts.setSpeechRate(1.0); 
-      await flutterTts.setPitch(1.0); // Doğal ton
+      await flutterTts.setPitch(1.0); 
     } else {
-      // Mobilde biraz daha yavaş ve mistik olabilir
       await flutterTts.setSpeechRate(0.5);
       await flutterTts.setPitch(0.8);
     }
-    
-    await flutterTts.setVolume(1.0);
   }
 
   void _analyzeDream() async {
     if (_controller.text.isEmpty) return;
+    
+    final tr = AppLocalizations.of(context);
+    final languageCode = tr.locale.languageCode;
+    
+    // Set TTS Language
+    await flutterTts.setLanguage(languageCode == 'en' ? "en-US" : "tr-TR");
 
     FocusScope.of(context).unfocus();
 
@@ -51,17 +55,24 @@ class _DreamScreenState extends State<DreamScreen> {
       resultText = null;
     });
 
-    // Analiz simülasyonu
-    await Future.delayed(const Duration(seconds: 2));
-
-    String analysis = "Gördüğün bu rüya, iç dünyandaki bir uyanışı simgeliyor. Bilinçaltın sana değişime hazır olman gerektiğini fısıldıyor.";
-
-    if (mounted) {
-      setState(() {
-        isAnalyzing = false;
-        resultText = analysis;
-      });
-      _speak(analysis);
+    // Real API Call
+    try {
+      final analysis = await OracleService().analyzeDream(_controller.text, languageCode);
+      
+      if (mounted) {
+        setState(() {
+          isAnalyzing = false;
+          resultText = analysis;
+        });
+        _speak(analysis);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          isAnalyzing = false;
+          resultText = languageCode == 'en' ? "Connection interrupted with the dream realm." : "Rüya alemiyle bağlantı koptu.";
+        });
+      }
     }
   }
 

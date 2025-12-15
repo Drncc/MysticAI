@@ -14,11 +14,11 @@ class OracleNotifier extends _$OracleNotifier {
     return const AsyncValue.data(null);
   }
 
-  Future<void> seekGuidance(String prompt, {bool isPremium = false}) async {
+  Future<void> seekGuidance(String prompt, String languageCode, {bool isPremium = false}) async {
     state = const AsyncValue.loading();
     try {
       // 1. Get Guidance from Service
-      final response = await _oracleService.getOracleGuidance(prompt, isPremium: isPremium);
+      final response = await _oracleService.getOracleGuidance(prompt, languageCode, isPremium: isPremium);
       
       // 2. Save to Supabase
       final supabase = Supabase.instance.client;

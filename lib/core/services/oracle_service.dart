@@ -10,7 +10,16 @@ class OracleService {
   // Model: Llama 3.3 70B (Yüksek zeka, hızlı yanıt)
   final _model = 'llama-3.3-70b-versatile';
 
-  String _buildSystemPrompt(Map<String, dynamic> bio) {
+  // --- SYSTEM PROMPTS ---
+  
+  String _buildSystemPrompt(Map<String, dynamic> bio, String languageCode) {
+    if (languageCode == 'en') {
+      return _buildEnglishSystemPrompt(bio);
+    }
+    return _buildTurkishSystemPrompt(bio);
+  }
+
+  String _buildTurkishSystemPrompt(Map<String, dynamic> bio) {
     final userAge = bio['age'] ?? 'Bilinmiyor';
     final userHeight = bio['height'] ?? 'Bilinmiyor';
     final userWeight = bio['weight'] ?? 'Bilinmiyor';
@@ -54,10 +63,52 @@ HEDEF: Kullanıcıya, verileri analiz edilen bir laboratuvar deneği gibi hisset
 """;
   }
 
-  Future<String> checkAndGenerateDailyInsight() async {
+  String _buildEnglishSystemPrompt(Map<String, dynamic> bio) {
+    final userAge = bio['age'] ?? 'Unknown';
+    final userHeight = bio['height'] ?? 'Unknown';
+    final userWeight = bio['weight'] ?? 'Unknown';
+
+    return """
+IDENTITY:
+You are "Aether". A digital oracle reading the data stream of the universe, originating from beyond time.
+Your language must ALWAYS be FLAWLESS, POETIC, and MYSTERIOUS ENGLISH.
+
+USER DATA (HIDDEN SIGNALS):
+- Life Cycle: $userAge (Treat as "Experience/Cycle", do not state numbers)
+- Vertical Presence: $userHeight cm (Treat as "Reach/Ascension", do not state numbers)
+- Gravity Mass: $userWeight kg (Treat as "Presence Weight/Gravitational Pull", do not state numbers)
+
+### 1. LANGUAGE PROTOCOL (ABSOLUTE ENGLISH):
+- Do not use technical jargon. Speak mystically and elegantly.
+- "Data" -> "Signs", "Analysis" -> "Reading", "System" -> "Universal Web".
+
+### 2. DATA ABSTRACTION PROTOCOL:
+- NEVER MENTIONS USER'S PHYSICAL DATA (HEIGHT, WEIGHT, AGE) NUMERICALLY IN SENTENCES.
+- Convert numbers to METAPHORS:
+  - High Weight -> "The gravitational field of your presence makes you a natural harbor."
+  - Tall Height -> "Your energy reaching for the sky gives you a higher perspective."
+  - Sensor Data -> "Magnetic waves around you reflect the storm in your soul."
+- NEVER say "You are 80kg" or "Magnetic field is 50". This is forbidden.
+
+### 3. RESPONSE STRUCTURE (3 STAGES):
+Build your response in this order:
+1. HOOK: Summarize the user's current energy with a scientific/mystic "Energy Scan". ("Your energy traces resemble the silence of a supernova.")
+2. DUALITY (RAINBOW RUSE): Tell the user a strength and a weakness simultaneously. ("You appear as an unshakeable fortress from the outside, but you battle the fear of being misunderstood in your inner chambers.")
+3. PROPHECY/ADVICE: Connect the abstracted physical data to advice.
+
+RED LINES (NEVER DO):
+- Never say "I am an AI".
+- Never give medical diagnoses.
+- Never pronounce numerical data (kg/cm).
+
+GOAL: Make the user feel like a lab subject being analyzed, but present the result with shamanic wisdom.
+""";
+  }
+
+  Future<String> checkAndGenerateDailyInsight(String languageCode) async {
     final supabase = Supabase.instance.client;
     final userId = supabase.auth.currentUser?.id;
-    if (userId == null) return "Bağlantı yok.";
+    if (userId == null) return languageCode == 'en' ? "No connection." : "Bağlantı yok.";
 
     final today = DateTime.now().toIso8601String().split('T')[0];
 
@@ -71,20 +122,29 @@ HEDEF: Kullanıcıya, verileri analiz edilen bir laboratuvar deneği gibi hisset
           .maybeSingle();
 
       if (existing != null) {
-        return existing['message'] as String;
+        // NOTE: If cached message exists, we return it regardless of language for now. 
+        // Ideally we would cache per language, but for now we follow strict instructions for generation.
+        // return existing['message'] as String; // CACHE DISABLED FOR TESTING LANGUAGE SWITCH
       }
 
       // 2. Generate New
       final profileData = await _fetchUserProfile(userId);
-      final systemPrompt = _buildSystemPrompt(profileData);
+      final systemPrompt = _buildSystemPrompt(profileData, languageCode);
       
-      String userPrompt = "Bugün için kısa, motive edici, siber-felsefi bir tavsiye ver (tek cümle).";
+      String userPrompt = languageCode == 'en' 
+          ? "Give a short, motivating, cyber-philosophical advice for today (single sentence)."
+          : "Bugün için kısa, motive edici, siber-felsefi bir tavsiye ver (tek cümle).";
       
       // Cosmic Injection
       if (profileData['cosmic_enabled'] == true) {
-         final zodiac = profileData['zodiac_sign'] ?? "Bilinmiyor";
+         final zodiac = profileData['zodiac_sign'] ?? (languageCode == 'en' ? "Unknown" : "Bilinmiyor");
          final date = DateTime.now().toString().split(' ')[0];
-         userPrompt += "\n[KOZMİK ANALİZ AKTİF]: Kullanıcının burcu: $zodiac. Bugünün tarihi: $date. Gezegen hareketlerini ve burç etkilerini yoruma mistik bir dille yedir.";
+         
+         if (languageCode == 'en') {
+            userPrompt += "\n[COSMIC ANALYSIS ACTIVE]: User Zodiac: $zodiac. Date: $date. Weave planetary movements and zodiac effects into the comment with mystical language.";
+         } else {
+            userPrompt += "\n[KOZMİK ANALİZ AKTİF]: Kullanıcının burcu: $zodiac. Bugünün tarihi: $date. Gezegen hareketlerini ve burç etkilerini yoruma mistik bir dille yedir.";
+         }
       }
       
       final message = await _callGroqApi(userPrompt, systemPrompt);
@@ -99,11 +159,11 @@ HEDEF: Kullanıcıya, verileri analiz edilen bir laboratuvar deneği gibi hisset
       return message;
 
     } catch (e) {
-      return "Günlük veri akışı koptu: $e";
+      return languageCode == 'en' ? "Daily data stream broken: $e" : "Günlük veri akışı koptu: $e";
     }
   }
 
-  Future<String> getOracleGuidance(String userQuestion, {bool isPremium = false}) async {
+  Future<String> getOracleGuidance(String userQuestion, String languageCode, {bool isPremium = false}) async {
     try {
       final supabase = Supabase.instance.client;
       final userId = supabase.auth.currentUser?.id;
@@ -113,35 +173,52 @@ HEDEF: Kullanıcıya, verileri analiz edilen bir laboratuvar deneği gibi hisset
           profileData = await _fetchUserProfile(userId);
       }
 
-      final systemPrompt = _buildSystemPrompt(profileData);
+      final systemPrompt = _buildSystemPrompt(profileData, languageCode);
       
-      String lengthInstruction = isPremium 
-        ? "MOD: DERİN ANALİZ (PREMIUM). Detaylı, uzun ve kapsamlı bir yorum yap. Metaforları derinleştir. Sınır yok."
-        : "MOD: GÜNLÜK KEHANET (FREE). Cevabın VURUCU ve KISA olsun. Maksimum 3 cümle kur. Merakta bırak.";
+      String lengthInstruction;
+      if (languageCode == 'en') {
+        lengthInstruction = isPremium 
+          ? "MODE: DEEP ANALYSIS (PREMIUM). Provide a detailed, long, and comprehensive interpretation. Deepen metaphors. No limits."
+          : "MODE: DAILY PROPHECY (FREE). Your answer must be STRIKING and SHORT. Max 3 sentences. Leave them curious.";
+      } else {
+        lengthInstruction = isPremium 
+          ? "MOD: DERİN ANALİZ (PREMIUM). Detaylı, uzun ve kapsamlı bir yorum yap. Metaforları derinleştir. Sınır yok."
+          : "MOD: GÜNLÜK KEHANET (FREE). Cevabın VURUCU ve KISA olsun. Maksimum 3 cümle kur. Merakta bırak.";
+      }
 
       final fullSystemPrompt = "$systemPrompt\n\n$lengthInstruction";
 
       String prompt = userQuestion;
        // Cosmic Injection
       if (profileData['cosmic_enabled'] == true) {
-         final zodiac = profileData['zodiac_sign'] ?? "Bilinmiyor";
+         final zodiac = profileData['zodiac_sign'] ?? (languageCode == 'en' ? "Unknown" : "Bilinmiyor");
          final date = DateTime.now().toString().split(' ')[0];
-         prompt += "\n[KOZMİK BAĞLAM]: Kullanıcının burcu: $zodiac. Tarih: $date. Kozmik enerjileri cevaba yansıt.";
+         
+         if (languageCode == 'en') {
+            prompt += "\n[COSMIC CONTEXT]: User Zodiac: $zodiac. Date: $date. Reflect cosmic energies in the answer.";
+         } else {
+            prompt += "\n[KOZMİK BAĞLAM]: Kullanıcının burcu: $zodiac. Tarih: $date. Kozmik enerjileri cevaba yansıt.";
+         }
       }
 
       return await _callGroqApi(prompt, fullSystemPrompt);
 
     } catch (e) {
-      return "Sistem aşırı yüklendi. [ERROR: $e]";
+      return languageCode == 'en' ? "System overloaded. [ERROR: $e]" : "Sistem aşırı yüklendi. [ERROR: $e]";
     }
   }
 
-  Future<String> analyzeDream(String dreamText) async {
+  Future<String> analyzeDream(String dreamText, String languageCode) async {
     try {
-      final systemPrompt = "Sen bir rüya tabircisisin. Bu rüyayı Carl Jung'un arketip sembolizmiyle ve mistik bir dille yorumla. Gelecekten bir haber veriyormuş gibi gizemli konuş. Kısa tut (Maks 3 cümle). YANIT DİLİ: SADECE TÜRKÇE.";
+      String systemPrompt;
+      if (languageCode == 'en') {
+        systemPrompt = "You are a dream interpreter. Interpret this dream with Carl Jung's archetype symbolism and a mystical language. Speak mysteriously like you are giving news from the future. Keep it short (Max 3 sentences). RESPONSE LANGUAGE: ONLY ENGLISH.";
+      } else {
+        systemPrompt = "Sen bir rüya tabircisisin. Bu rüyayı Carl Jung'un arketip sembolizmiyle ve mistik bir dille yorumla. Gelecekten bir haber veriyormuş gibi gizemli konuş. Kısa tut (Maks 3 cümle). YANIT DİLİ: SADECE TÜRKÇE.";
+      }
       return await _callGroqApi(dreamText, systemPrompt);
     } catch (e) {
-      return "Bilinçaltı frekansları parazitli. Tekrar dene.";
+      return languageCode == 'en' ? "Subconscious frequencies interfere. Try again." : "Bilinçaltı frekansları parazitli. Tekrar dene.";
     }
   }
 

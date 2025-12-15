@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/i18n/app_localizations.dart';
 // import '../../../../core/theme/app_colors.dart'; // Renk hatasını önlemek için kapattık
 import '../../../../core/services/share_service.dart';
 import '../../../love/presentation/love_screen.dart';
@@ -12,9 +13,11 @@ class CosmicLabSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0F0F1E).withOpacity(0.9), // DÜZELTME: Hardcoded Renk
+        color: const Color(0xFF0F0F1E).withOpacity(0.9), 
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
         border: Border(top: BorderSide(color: Colors.purpleAccent.withOpacity(0.3))),
       ),
@@ -36,9 +39,9 @@ class CosmicLabSheet extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               
-              Text("KOZMİK LABORATUVAR", style: AppTextStyles.h2.copyWith(fontSize: 18, color: Colors.cyanAccent)), // AppTextStyles check
+              Text(tr.translate('lab_title'), style: AppTextStyles.h2.copyWith(fontSize: 18, color: Colors.cyanAccent)), 
               const SizedBox(height: 5),
-              Text("Gizli kozmik araçlara erişim sağla.", style: AppTextStyles.bodyMedium.copyWith(fontSize: 12, color: Colors.white54)), // Changed from interStyle to bodyMedium to match known styles
+              Text(tr.translate('lab_subtitle'), style: AppTextStyles.bodyMedium.copyWith(fontSize: 12, color: Colors.white54)), 
               
               const SizedBox(height: 30),
 
@@ -52,7 +55,7 @@ class CosmicLabSheet extends StatelessWidget {
                   children: [
                     _buildLabCard(
                       context, 
-                      "AŞK UYUMU", 
+                      tr.translate('lab_love'), 
                       Icons.favorite, 
                       Colors.pinkAccent, 
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LoveScreen())),
@@ -60,24 +63,24 @@ class CosmicLabSheet extends StatelessWidget {
                     ),
                     _buildLabCard(
                       context, 
-                      "RÜYA TABİRİ", 
+                      tr.translate('lab_dream'), 
                       Icons.psychology, 
                       Colors.purpleAccent, 
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DreamScreen())),
                     ),
                     _buildLabCard(
                       context, 
-                      "RİTÜEL ODASI", 
+                      tr.translate('lab_ritual'), 
                       Icons.self_improvement, 
                       Colors.amberAccent, 
                       () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RitualScreen())),
                     ),
                     _buildLabCard(
                       context, 
-                      "ENERJİ PAYLAŞ", 
+                      tr.translate('lab_share'), 
                       Icons.share, 
                       Colors.cyanAccent, 
-                      () => ShareService.captureAndShare(context), // ShareService çağrısı
+                      () => ShareService.captureAndShare(context), 
                     ),
                   ],
                 ),

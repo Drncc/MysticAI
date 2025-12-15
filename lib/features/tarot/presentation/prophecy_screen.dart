@@ -11,6 +11,7 @@ import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/features/tarot/presentation/widgets/mystic_tarot_card.dart';
 import 'package:tekno_mistik/features/tarot/services/tarot_service.dart';
 import 'package:tekno_mistik/core/services/limit_service.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class ProphecyScreen extends ConsumerStatefulWidget {
   const ProphecyScreen({super.key});
@@ -56,15 +57,16 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
   }
 
   void _showLimitDialog() {
+    final tr = AppLocalizations.of(context);
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2C),
-        title: Text("Kader Mühürlendi", style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed)),
-        content: Text("Bugünlük kart hakkın doldu. Yarın gel veya Üstat seviyesine geç.", style: AppTextStyles.bodyMedium),
+        title: Text(tr.translate('prophecy_limit_title'), style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed)),
+        content: Text(tr.translate('prophecy_limit_msg'), style: AppTextStyles.bodyMedium),
         actions: [
           TextButton(
-            child: const Text("ANLADIM", style: TextStyle(color: Colors.grey)),
+            child: Text(tr.translate('btn_understood'), style: const TextStyle(color: Colors.grey)),
             onPressed: () => Navigator.pop(ctx),
           ),
         ],
@@ -73,6 +75,11 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
   }
 
   void _showResultDialog(TarotSelection selection) {
+    final tr = AppLocalizations.of(context);
+    // Dynamic localization based on card codeName
+    final cardName = tr.translate('tarot_${selection.card.codeName}_name');
+    final cardMeaning = tr.translate('tarot_${selection.card.codeName}_desc');
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -106,7 +113,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                      Text(
-                       "KADERİN YANSIMASI", 
+                       tr.translate('prophecy_result_title'), 
                        style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan, shadows: [Shadow(color: AppTheme.neonCyan, blurRadius: 15)]),
                        textAlign: TextAlign.center,
                      ),
@@ -128,8 +135,16 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                      
                      const SizedBox(height: 30),
                      
+                     Padding(
+                       padding: const EdgeInsets.only(bottom: 10.0),
+                       child: Text(
+                         cardName.toUpperCase(),
+                         style: AppTextStyles.h3.copyWith(color: Colors.amber),
+                       ),
+                     ),
+                     
                      Text(
-                       "\"${selection.card.meaning}\"", 
+                       "\"$cardMeaning\"", 
                        textAlign: TextAlign.center,
                        style: GoogleFonts.crimsonText( 
                          color: Colors.white.withOpacity(0.95),
@@ -151,9 +166,9 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
                          ),
                          icon: const Icon(Icons.share, color: Colors.white),
-                         label: Text("ENERJİYİ PAYLAŞ", style: AppTextStyles.button.copyWith(color: Colors.white)),
+                         label: Text(tr.translate('prophecy_share_btn'), style: AppTextStyles.button.copyWith(color: Colors.white)),
                          onPressed: () {
-                           Share.share('Mistik AI bana bugün "${selection.card.name}" kartını seçti. Anlamı: ${selection.card.meaning}. Sen de kozmik rehberini keşfet! 🔮✨');
+                           Share.share('Mistik AI: $cardName - $cardMeaning 🔮✨');
                          },
                        ),
                      ),
@@ -163,7 +178,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                        onTap: () => Navigator.of(context).pop(),
                        child: Container(
                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                         child: Text("MÜHRÜ KAPAT", style: AppTextStyles.bodySmall.copyWith(letterSpacing: 2)),
+                         child: Text(tr.translate('prophecy_close_btn'), style: AppTextStyles.bodySmall.copyWith(letterSpacing: 2)),
                        ),
                      )
                   ],
@@ -178,10 +193,12 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text("KEHANET", style: AppTextStyles.h2.copyWith(letterSpacing: 2)),
+        title: Text(tr.translate('prophecy_title'), style: AppTextStyles.h2.copyWith(letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
@@ -226,7 +243,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                               children: [
                                 const CircularProgressIndicator(color: AppTheme.neonPurple),
                                 const SizedBox(height: 20),
-                                Text("MÜHÜRLENİYOR...", style: AppTextStyles.button.copyWith(color: Colors.white70))
+                                Text(tr.translate('prophecy_seal_btn'), style: AppTextStyles.button.copyWith(color: Colors.white70))
                                     .animate(onPlay: (c)=>c.repeat()).fadeIn(duration: 500.ms)
                               ],
                             ),
@@ -253,7 +270,7 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   child: Text(
-                    _isSealing ? "EVREN DİNLİYOR..." : "ENERJİNİ KARTA MÜHÜRLE",
+                    _isSealing ? tr.translate('prophecy_listening') : tr.translate('prophecy_seal_action'),
                     style: AppTextStyles.button.copyWith(color: AppTheme.neonCyan),
                   ),
                 ),

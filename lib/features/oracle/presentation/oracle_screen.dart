@@ -12,6 +12,7 @@ import 'package:tekno_mistik/features/oracle/presentation/widgets/complex_sigil.
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 import 'package:tekno_mistik/core/services/limit_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class OracleScreen extends ConsumerStatefulWidget {
   const OracleScreen({super.key});
@@ -95,20 +96,40 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     _flutterTts.stop();
 
     final userSettings = ref.read(userSettingsProvider);
+    final tr = AppLocalizations.of(context);
+    final isEn = tr.locale.languageCode == 'en';
 
-    String contextPrompt = "\n[GİZLİ BAĞLAM: Kullanıcı Adı: ${userSettings.name}. ";
-    if (userSettings.age.isNotEmpty) contextPrompt += "Yaş: ${userSettings.age}. ";
-    if (userSettings.profession.isNotEmpty) contextPrompt += "Meslek: ${userSettings.profession}. ";
-    if (userSettings.maritalStatus.isNotEmpty) contextPrompt += "Medeni Durum: ${userSettings.maritalStatus}. ";
-    if (userSettings.includeZodiacInOracle) contextPrompt += "Burç: ${userSettings.zodiacSign}. Astrolojik referanslar kullan. ";
-    
-    contextPrompt += "Sen sadece cevap veren bir bot değil, sohbeti devam ettirmek isteyen meraklı bir arkadaşsın. Cevabını verdikten sonra MUTLAKA kullanıcıya konuyla ilgili yeni, kişisel ve merak uyandırıcı bir soru sor. Konuyu asla kapatma.";
-    contextPrompt += " YANIT DİLİ KURALI: Yanıtlarını SADECE standart Türkçe alfabesi ile ver. Asla Çince, Japonca, Kiril veya Latin olmayan başka karakterler kullanma. Kelimelerin arasına yabancı semboller karıştırma.]";
-    
-    if (LimitService().isPremium) {
-      contextPrompt += " Cevabı detaylı, astrolojik transitleri içerecek şekilde uzun ver.";
+    String contextPrompt;
+    if (isEn) {
+      contextPrompt = "\n[HIDDEN CONTEXT: Username: ${userSettings.name}. ";
+      if (userSettings.age.isNotEmpty) contextPrompt += "Age: ${userSettings.age}. ";
+      if (userSettings.profession.isNotEmpty) contextPrompt += "Profession: ${userSettings.profession}. ";
+      if (userSettings.maritalStatus.isNotEmpty) contextPrompt += "Marital Status: ${userSettings.maritalStatus}. ";
+      if (userSettings.includeZodiacInOracle) contextPrompt += "Zodiac: ${userSettings.zodiacSign}. Use astrological references. ";
+      
+      contextPrompt += "You are not just a bot answering questions, you are a curious friend wanting to continue the conversation. AFTER your answer, YOU MUST ASK a new, personal, and intriguing question related to the topic. Never close the topic.";
+      contextPrompt += " RESPONSE LANGUAGE RULE: Response MUST be in English. Do not mix other languages.]";
+      
+      if (LimitService().isPremium) {
+        contextPrompt += " Give a detailed, long answer including astrological transits.";
+      } else {
+        contextPrompt += " Keep the answer mystical and short (2-3 sentences).";
+      }
     } else {
-      contextPrompt += " Cevabı 2-3 cümle ile mistik ve kısa tut.";
+      contextPrompt = "\n[GİZLİ BAĞLAM: Kullanıcı Adı: ${userSettings.name}. ";
+      if (userSettings.age.isNotEmpty) contextPrompt += "Yaş: ${userSettings.age}. ";
+      if (userSettings.profession.isNotEmpty) contextPrompt += "Meslek: ${userSettings.profession}. ";
+      if (userSettings.maritalStatus.isNotEmpty) contextPrompt += "Medeni Durum: ${userSettings.maritalStatus}. ";
+      if (userSettings.includeZodiacInOracle) contextPrompt += "Burç: ${userSettings.zodiacSign}. Astrolojik referanslar kullan. ";
+      
+      contextPrompt += "Sen sadece cevap veren bir bot değil, sohbeti devam ettirmek isteyen meraklı bir arkadaşsın. Cevabını verdikten sonra MUTLAKA kullanıcıya konuyla ilgili yeni, kişisel ve merak uyandırıcı bir soru sor. Konuyu asla kapatma.";
+      contextPrompt += " YANIT DİLİ KURALI: Yanıtlarını SADECE standart Türkçe alfabesi ile ver. Asla Çince, Japonca, Kiril veya Latin olmayan başka karakterler kullanma. Kelimelerin arasına yabancı semboller karıştırma.]";
+      
+      if (LimitService().isPremium) {
+        contextPrompt += " Cevabı detaylı, astrolojik transitleri içerecek şekilde uzun ver.";
+      } else {
+        contextPrompt += " Cevabı 2-3 cümle ile mistik ve kısa tut.";
+      }
     }
 
     final String finalPrompt = "$text $contextPrompt";
@@ -121,7 +142,11 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     FocusScope.of(context).unfocus();
     LimitService().incrementMessage();
     
-    ref.read(oracleNotifierProvider.notifier).seekGuidance(finalPrompt, isPremium: LimitService().isPremium);
+    ref.read(oracleNotifierProvider.notifier).seekGuidance(
+      finalPrompt, 
+      tr.locale.languageCode, 
+      isPremium: LimitService().isPremium
+    );
   }
 
   void _showLimitDialog() {

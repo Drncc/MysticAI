@@ -250,7 +250,7 @@ class _DashboardViewState extends State<DashboardView> {
 
               // Daily Insight Card
               FutureBuilder<String>(
-                future: OracleService().checkAndGenerateDailyInsight(),
+                future: OracleService().checkAndGenerateDailyInsight(tr.locale.languageCode),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                      return const GlassCard(
