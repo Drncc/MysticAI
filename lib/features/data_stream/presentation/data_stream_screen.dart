@@ -68,15 +68,15 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
     return Colors.redAccent;
   }
 
-  String _getMagneticComment(double val) {
-    if (val > 50) return "Yüksek Enerji: Ani kararlardan kaçın.";
-    if (val < 40) return "Düşük Akı: İçe dönmek için ideal.";
-    return "Dengeli Akış: Üretkenlik için uygun.";
+  String _getMagneticComment(double val, BuildContext context) {
+    if (val > 50) return AppLocalizations.of(context).translate('status_high_energy');
+    if (val < 40) return AppLocalizations.of(context).translate('status_low_flux');
+    return AppLocalizations.of(context).translate('status_balanced_flux');
   }
 
-  String _getChaosComment(double val) {
-    if (val > 20) return "Türbülans: Risk alma.";
-    return "Stabil: Evren seninle uyumlu.";
+  String _getChaosComment(double val, BuildContext context) {
+    if (val > 20) return AppLocalizations.of(context).translate('status_turbulence');
+    return AppLocalizations.of(context).translate('status_stable_aligned');
   }
 
   @override
@@ -118,8 +118,8 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                   children: [
                     _buildCosmicBadge(
                       title: tr.translate('moon_phase_title'),
-                      value: "%${_lunarPhase.toInt()} ${_isLunarGrowing ? 'BÜYÜYEN' : 'KÜÇÜLEN'}",
-                      comment: _isLunarGrowing ? "Yeni başlangıçlar zamanı." : "Arınma zamanı.",
+                      value: "%${_lunarPhase.toInt()} ${_isLunarGrowing ? tr.translate('moon_waxing') : tr.translate('moon_waning')}",
+                      comment: _isLunarGrowing ? tr.translate('lunar_growing') : tr.translate('lunar_shrinking'),
                       icon: Icons.nightlight_round,
                       color: Colors.cyanAccent,
                       delay: 300,
@@ -128,7 +128,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     _buildCosmicBadge(
                       title: tr.translate('resonance_title'),
                       value: "${_schumannHz.toStringAsFixed(2)} Hz",
-                      comment: "Stabil: Meditasyon için uygun.",
+                      comment: tr.translate('status_stable_meditation'),
                       icon: Icons.graphic_eq,
                       color: Colors.greenAccent,
                       delay: 400,
@@ -137,7 +137,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                     _buildCosmicBadge(
                       title: tr.translate('solar_activity_title'),
                       value: "Kp: $_solarKp",
-                      comment: _solarKp > 4 ? "Fırtına: Başın ağrıyabilir." : "Sakin: Enerji akışı temiz.",
+                      comment: _solarKp > 4 ? tr.translate('status_storm') : tr.translate('status_calm'),
                       icon: Icons.wb_sunny_outlined,
                       color: _getSolarColor(_solarKp),
                       delay: 500,
@@ -168,7 +168,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                             children: [
                               Text(tr.translate('magnetic_flux_label').toUpperCase(), style: AppTextStyles.bodySmall),
                               Text("${_magneticField.toStringAsFixed(1)} µT", style: AppTextStyles.h2.copyWith(color: AppTheme.neonPurple)),
-                              Text(_getMagneticComment(_magneticField), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+                              Text(_getMagneticComment(_magneticField, context), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
                           ),
                           Icon(Icons.waves, color: AppTheme.neonPurple, size: 32)
@@ -194,7 +194,7 @@ class _DataStreamScreenState extends ConsumerState<DataStreamScreen> {
                             children: [
                               Text(tr.translate('entropy_label'), style: AppTextStyles.bodySmall),
                               Text("%${_chaosLevel.toInt()}", style: AppTextStyles.h2.copyWith(color: AppTheme.neonCyan)),
-                              Text(_getChaosComment(_chaosLevel), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+                              Text(_getChaosComment(_chaosLevel, context), style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
                             ],
                           ),
                           Icon(Icons.grain, color: AppTheme.neonCyan, size: 32)

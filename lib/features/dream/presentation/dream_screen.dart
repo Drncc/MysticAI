@@ -92,12 +92,14 @@ class _DreamScreenState extends State<DreamScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: const Color(0xFF0F0F1E),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text("BİLİNÇALTI TARAYICI", style: AppTextStyles.orbitronStyle),
+        title: Text(tr.translate('dream_title'), style: AppTextStyles.orbitronStyle),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.purpleAccent),
@@ -109,7 +111,7 @@ class _DreamScreenState extends State<DreamScreen> {
         child: Column(
           children: [
             Text(
-              "Rüyalar, ruhun fısıltılarıdır.\nGördüklerini anlat, sembolleri çözelim.",
+              tr.translate('dream_subtitle'),
               textAlign: TextAlign.center,
               style: AppTextStyles.interStyle.copyWith(color: Colors.white70),
             ),
@@ -125,11 +127,11 @@ class _DreamScreenState extends State<DreamScreen> {
                 controller: _controller,
                 maxLines: 5,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: "Örn: Bir ormanda kayboldum...",
-                  hintStyle: TextStyle(color: Colors.white24),
+                decoration: InputDecoration(
+                  hintText: tr.translate('dream_hint'),
+                  hintStyle: const TextStyle(color: Colors.white24),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.all(20),
+                  contentPadding: const EdgeInsets.all(20),
                 ),
               ),
             ),
@@ -144,7 +146,7 @@ class _DreamScreenState extends State<DreamScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),
-                child: Text("SİMGELERİ ÇÖZ", style: AppTextStyles.orbitronStyle),
+                child: Text(tr.translate('btn_decode_symbols'), style: AppTextStyles.orbitronStyle),
               ),
 
             if (isAnalyzing)

@@ -9,6 +9,7 @@ import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 import 'package:tekno_mistik/features/auth/presentation/login_screen.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -131,10 +132,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
   // --- BUILD METODU ---
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+    
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text("AYARLAR", style: AppTheme.orbitronStyle.copyWith(letterSpacing: 2)),
+        title: Text(tr.translate('settings_title'), style: AppTheme.orbitronStyle.copyWith(letterSpacing: 2)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
@@ -149,9 +152,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
           labelColor: AppTheme.neonCyan,
           unselectedLabelColor: Colors.white54,
           labelStyle: AppTheme.orbitronStyle.copyWith(fontSize: 12),
-          tabs: const [
-            Tab(text: "KİMLİK"),
-            Tab(text: "GEÇMİŞ"),
+          tabs: [
+            Tab(text: tr.translate('tab_identity')),
+            Tab(text: tr.translate('tab_history')),
           ],
         ),
       ),
@@ -170,6 +173,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
   Widget _buildIdentityTab() {
     final settings = ref.watch(userSettingsProvider);
     final notifier = ref.read(userSettingsProvider.notifier);
+    final tr = AppLocalizations.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 100),
@@ -183,8 +187,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // PROFILE AVATAR
-                  GestureDetector(
+                   // PROFILE AVATAR
+                   GestureDetector(
                     onTap: _pickImage,
                     child: Stack(
                       alignment: Alignment.bottomRight,
@@ -218,7 +222,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   const SizedBox(height: 20),
 
                   _buildNeonInput(
-                    label: "AD SOYAD", 
+                    label: tr.translate('label_name'), 
                     value: settings.name, 
                     onChanged: notifier.updateName,
                     icon: Icons.person
@@ -226,14 +230,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   const SizedBox(height: 15),
                   Row(
                     children: [
-                      Expanded(child: _buildNeonInput(label: "YAŞ", value: settings.age, onChanged: notifier.updateAge, icon: Icons.cake)),
+                      Expanded(child: _buildNeonInput(label: tr.translate('label_age'), value: settings.age, onChanged: notifier.updateAge, icon: Icons.cake)),
                       const SizedBox(width: 15),
-                      Expanded(child: _buildNeonInput(label: "MESLEK", value: settings.profession, onChanged: notifier.updateProfession, icon: Icons.work)),
+                      Expanded(child: _buildNeonInput(label: tr.translate('label_job'), value: settings.profession, onChanged: notifier.updateProfession, icon: Icons.work)),
                     ],
                   ),
                   const SizedBox(height: 15),
                   _buildNeonInput(
-                    label: "MEDENİ DURUM", 
+                    label: tr.translate('label_status'), 
                     value: settings.maritalStatus, 
                     onChanged: notifier.updateMaritalStatus,
                     icon: Icons.favorite
@@ -241,9 +245,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   const SizedBox(height: 15),
                   Row(
                     children: [
-                      Expanded(child: _buildNeonInput(label: "BOY (cm)", value: settings.height, onChanged: notifier.updateHeight, icon: Icons.height)),
+                      Expanded(child: _buildNeonInput(label: tr.translate('label_height'), value: settings.height, onChanged: notifier.updateHeight, icon: Icons.height)),
                       const SizedBox(width: 15),
-                      Expanded(child: _buildNeonInput(label: "KİLO (kg)", value: settings.weight, onChanged: notifier.updateWeight, icon: Icons.monitor_weight)),
+                      Expanded(child: _buildNeonInput(label: tr.translate('label_weight'), value: settings.weight, onChanged: notifier.updateWeight, icon: Icons.monitor_weight)),
                     ],
                   ),
                 ],
@@ -262,9 +266,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                 children: [
                   ListTile(
                     leading: Icon(Icons.star, color: AppTheme.neonCyan),
-                    title: Text("BURÇ & DOĞUM TARİHİ", style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                    title: Text(tr.translate('label_zodiac_dob'), style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                     subtitle: Text(
-                      settings.zodiacSign.isNotEmpty ? "Burç: ${settings.zodiacSign}" : "Seçilmedi",
+                      settings.zodiacSign.isNotEmpty ? "${tr.translate('label_zodiac_prefix')} ${settings.zodiacSign}" : "Seçilmedi",
                       style: GoogleFonts.orbitron(color: AppTheme.neonCyan),
                     ),
                     trailing: Icon(Icons.calendar_today, color: Colors.white54),
@@ -292,7 +296,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                   ),
                   const Divider(color: Colors.white12),
                   SwitchListTile(
-                    title: Text("Burç Yorumunu Kehanete Dahil Et", style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
+                    title: Text(tr.translate('switch_zodiac_comment'), style: GoogleFonts.inter(color: Colors.white70, fontSize: 13)),
                     value: settings.includeZodiacInOracle,
                     activeColor: AppTheme.neonCyan,
                     onChanged: (val) => notifier.toggleZodiacInclusion(val),
@@ -314,7 +318,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                  FocusScope.of(context).unfocus();
                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Profil Güncellendi", style: GoogleFonts.orbitron()), backgroundColor: AppTheme.neonPurple));
                },
-               child: Text("KAYDET", style: AppTheme.orbitronStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+               child: Text(tr.translate('btn_save'), style: AppTheme.orbitronStyle.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
              ),
           ),
 
@@ -334,7 +338,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> with SingleTick
                       const Icon(Icons.power_settings_new, color: Colors.red),
                       const SizedBox(width: 10),
                       Text(
-                        "BAĞLANTIYI KOPAR (ÇIKIŞ)", 
+                        tr.translate('btn_logout'), 
                         style: AppTheme.orbitronStyle.copyWith(color: Colors.red, fontSize: 12)
                       ),
                     ],

@@ -3,6 +3,7 @@ import 'dart:ui';
 // IMPORTLAR
 import '../../../../core/services/share_service.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class LoveScreen extends StatefulWidget {
   const LoveScreen({super.key});
@@ -44,6 +45,8 @@ class _LoveScreenState extends State<LoveScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -51,7 +54,7 @@ class _LoveScreenState extends State<LoveScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         // HATA BURADAYDI: Artık AppTextStyles.orbitronStyle tanımlı!
-        title: Text("KOZMİK UYUM", style: AppTextStyles.orbitronStyle),
+        title: Text(tr.translate('compatibility_title'), style: AppTextStyles.orbitronStyle),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.cyanAccent),
@@ -74,9 +77,9 @@ class _LoveScreenState extends State<LoveScreen> {
                 const Icon(Icons.favorite, size: 80, color: Colors.pinkAccent),
                 const SizedBox(height: 30),
 
-                _buildDropdown("Senin Burcun", mySign, (val) => setState(() => mySign = val)),
+                _buildDropdown(tr.translate('label_your_sign'), mySign, (val) => setState(() => mySign = val)),
                 const SizedBox(height: 15),
-                _buildDropdown("Partnerin Burcu", partnerSign, (val) => setState(() => partnerSign = val)),
+                _buildDropdown(tr.translate('label_partner_sign'), partnerSign, (val) => setState(() => partnerSign = val)),
                 
                 const SizedBox(height: 40),
 
@@ -88,7 +91,7 @@ class _LoveScreenState extends State<LoveScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
-                    child: Text("ANALİZ ET", style: AppTextStyles.orbitronStyle.copyWith(fontSize: 16)),
+                    child: Text(tr.translate('btn_analyze'), style: AppTextStyles.orbitronStyle.copyWith(fontSize: 16)),
                   ),
 
                 if (isAnalyzing)

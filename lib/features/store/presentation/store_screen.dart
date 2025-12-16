@@ -5,6 +5,7 @@ import 'package:tekno_mistik/core/presentation/widgets/glass_card.dart';
 import 'package:tekno_mistik/core/theme/app_theme.dart';
 import 'package:tekno_mistik/core/theme/app_text_styles.dart';
 import 'package:tekno_mistik/core/services/limit_service.dart';
+import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
 class StoreScreen extends StatefulWidget {
   const StoreScreen({super.key});
@@ -18,10 +19,12 @@ class _StoreScreenState extends State<StoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text("KOZMİK ERİŞİM", style: AppTextStyles.h2.copyWith(letterSpacing: 2, color: AppTheme.neonCyan)),
+        title: Text(tr.translate('store_title'), style: AppTextStyles.h2.copyWith(letterSpacing: 2, color: AppTheme.neonCyan)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
@@ -32,26 +35,26 @@ class _StoreScreenState extends State<StoreScreen> {
         child: Column(
           children: [
             Text(
-              "Evrenin sırlarına sınırsız erişim sağla.\nKaderini şekillendir.",
+              tr.translate('store_subtitle'),
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyLarge,
             ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2),
 
             const SizedBox(height: 30),
 
-            _buildFeatureItem("Günde 15 Detaylı Oracle Mesajı"), 
-            _buildFeatureItem("Günde 3 Tarot Kartı Açılımı"), 
-            _buildFeatureItem("Detaylı Burç & Astro Analizi"),
-            _buildFeatureItem("Reklamsız Mistik Deneyim"),
+            _buildFeatureItem(tr.translate('feature_oracle')), 
+            _buildFeatureItem(tr.translate('feature_tarot')), 
+            _buildFeatureItem(tr.translate('feature_astro')),
+            _buildFeatureItem(tr.translate('feature_ads')),
             
             const SizedBox(height: 40),
 
             // Packages
             _buildPackageOption(
               index: 0,
-              title: "ÇIRAK",
-              price: "₺49.99 / Hafta",
-              subPrice: "(Başlangıç İçin)",
+              title: tr.translate('plan_apprentice'),
+              price: tr.translate('pkg_apprentice_price'), // User didn't give strict price keys, keeping pkg
+              subPrice: tr.translate('pkg_apprentice_sub'),
               isPopular: false,
             ),
             const SizedBox(height: 15),
@@ -71,19 +74,16 @@ class _StoreScreenState extends State<StoreScreen> {
                   children: [
                     const Icon(Icons.star, color: Colors.amber, size: 14),
                     const SizedBox(width: 5),
-                    Text("10.000+ Gezginin Tercihi", style: GoogleFonts.inter(fontSize: 12, color: Colors.white)),
+                    Text(tr.translate('store_badge_social'), style: GoogleFonts.inter(fontSize: 12, color: Colors.white)),
                   ],
                 ),
               ).animate().fadeIn().slideY(begin: 0.2),
 
             _buildPackageOption(
               index: 1,
-              title: "KAHİN",
-              price: "₺149.99 / Ay",
-              subPrice: "(Aylık sadece tüm özellikler)", // A bit vague, let's fix
-              // "Aylık 150 TL" -> Daily ~5 TL. 
-              // The user prompt said: "(Aylık sadece 83₺)" for annual package.
-              // For monthly package, let's just say "En Popüler Seçim".
+              title: tr.translate('plan_oracle'),
+              price: tr.translate('pkg_oracle_price'),
+              subPrice: tr.translate('pkg_oracle_sub'),
               isPopular: true,
             ),
             
@@ -91,9 +91,9 @@ class _StoreScreenState extends State<StoreScreen> {
 
             _buildPackageOption(
               index: 2,
-              title: "ÜSTAT",
-              price: "₺999.99 / Yıl",
-              subPrice: "(Aylık sadece 83₺)", // 999/12 ~ 83
+              title: tr.translate('plan_master'),
+              price: tr.translate('pkg_master_price'),
+              subPrice: tr.translate('pkg_master_sub'),
               isPopular: false,
             ),
 
@@ -117,14 +117,14 @@ class _StoreScreenState extends State<StoreScreen> {
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text("Yükseliş Tamamlandı. Sınırlar Kalktı.", style: GoogleFonts.orbitron()),
+                      content: Text(tr.translate('store_success'), style: GoogleFonts.orbitron()),
                       backgroundColor: AppTheme.neonPurple,
                     )
                   );
                 }
               },
               child: Text(
-                "SEÇİMİ ONAYLA VE YÜKSEL",
+                tr.translate('btn_subscribe'),
                 style: AppTheme.orbitronStyle.copyWith(fontWeight: FontWeight.bold, fontSize: 14),
               ),
             ).animate(onPlay: (c)=>c.repeat(reverse: true))
@@ -132,7 +132,7 @@ class _StoreScreenState extends State<StoreScreen> {
              
             const SizedBox(height: 20),
             Text(
-              "İptal edilebilir. Gizlilik politikası geçerlidir.",
+              tr.translate('store_legal'),
               style: AppTextStyles.bodySmall.copyWith(fontSize: 10),
             )
           ],
@@ -200,7 +200,7 @@ class _StoreScreenState extends State<StoreScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(color: AppTheme.neonCyan, borderRadius: BorderRadius.circular(10)),
-                              child: Text("POPÜLER", style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
+                              child: Text(AppLocalizations.of(context).translate('store_badge_popular'), style: GoogleFonts.inter(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
                             )
                           ]
                         ],

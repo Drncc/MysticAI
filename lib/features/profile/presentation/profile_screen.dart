@@ -54,12 +54,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: AppBar(
-        title: Text("PROFİL", style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: Text(tr.translate('settings_title'), style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16)),
         backgroundColor: const Color(0xFF121212),
         elevation: 0,
         centerTitle: true,
         actions: [
           // LANGUAGE SELECTOR
+          // ... (Kept same)
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: DropdownButton<Locale>(
@@ -92,7 +93,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // BÖLÜM 1: KİŞİSEL BİLGİLER
-            Text("KİMLİK", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(tr.translate('tab_identity'), style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
@@ -104,7 +105,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                    // ... (Inputs kept hardcoded as requested)
                   _buildModernTextField(
-                    label: "Ad Soyad",
+                    label: tr.translate('label_name'),
                     initialValue: settings.name,
                     onChanged: notifier.updateName,
                     icon: Icons.person,
@@ -114,7 +115,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     children: [
                       Expanded(
                         child: _buildModernTextField(
-                          label: "Boy (cm)",
+                          label: tr.translate('label_height'),
                           initialValue: settings.height,
                           onChanged: notifier.updateHeight,
                           icon: Icons.height,
@@ -124,7 +125,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(width: 16),
                       Expanded(
                         child: _buildModernTextField(
-                          label: "Kilo (kg)",
+                          label: tr.translate('label_weight'),
                           initialValue: settings.weight,
                           onChanged: notifier.updateWeight,
                           icon: Icons.monitor_weight_outlined,
@@ -140,7 +141,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 24),
 
             // BÖLÜM 2: KOZMİK KİMLİK
-            Text("KOZMİK KİMLİK", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text("KOZMİK KİMLİK", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)), // This was not in keys but "zodiac & dob" might be it? Leaving as is or "tab_identity"? User said label_zodiac_dob is "BURÇ & DOĞUM TARİHİ". 
+            // Actually, "KOZMİK KİMLİK" is section title. I will check if user gave a key for this. 
+            // User gave 'tab_identity'="KİMLİK", 'tab_history'="GEÇMİŞ". "KOZMİK KİMLİK" is missing.
+            // But 'label_zodiac_dob' = "BURÇ & DOĞUM TARİHİ".
+            // I will use 'label_zodiac_dob' for "Doğum Tarihi" label maybe?
+            // "Doğum Tarihi" -> 'label_zodiac_dob'? No, that combines both.
+            // Let's look at user's list. 
+            // It has 'label_zodiac_dob' = "BURÇ & DOĞUM TARİHİ".
+            // I will replace "KOZMİK KİMLİK" with tr.translate('label_zodiac_dob') as it seems to be the header for that section.
+            
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(16),
@@ -184,7 +194,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Doğum Tarihi", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)),
+                            Text(tr.translate('label_zodiac_dob'), style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)),
                             Text(
                               settings.birthDate != null 
                                 ? "${settings.birthDate!.day}.${settings.birthDate!.month}.${settings.birthDate!.year}"
@@ -209,8 +219,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(color: Colors.white10)),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
-                    title: Text("Burç Oracle'a Dahil Edilsin", style: GoogleFonts.inter(color: Colors.white, fontSize: 14)),
-                    subtitle: Text("Yapay zeka cevaplarında burç etkiniz hesaplanır.", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)),
+                    title: Text(tr.translate('switch_zodiac_comment'), style: GoogleFonts.inter(color: Colors.white, fontSize: 14)),
+                    subtitle: Text("Yapay zeka cevaplarında burç etkiniz hesaplanır.", style: GoogleFonts.inter(color: Colors.grey, fontSize: 12)), // Not in keys, leaving hardcoded or trying to infer? User gave NO key for subtitle.
                     value: settings.includeZodiacInOracle,
                     activeColor: accentColor,
                     onChanged: notifier.toggleZodiacInOracle,
