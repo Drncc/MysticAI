@@ -1,6 +1,7 @@
 # Environment Variables
 .env
-lib/core/config/env_config.dart
+.env.*
+!.env.example
 
 # Flutter/Dart
 .dart_tool/
@@ -20,6 +21,14 @@ android/.gradle
 android/app/debug
 android/app/profile
 android/app/release
+android/key.properties
+android/local.properties
+*.jks
+*.keystore
+
+# Logs & User Data
+build_log*.txt
+.gemini/
 
 # iOS
 ios/Pods/
