@@ -79,16 +79,40 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
     final text = suggestion ?? _promptController.text.trim();
     if (text.isEmpty) return;
 
-    // ... (Limit Service check kept same)
+    if (!LimitService().canAskOracle) {
+      _showLimitDialog();
+      return;
+    }
 
-    // Stop speaking if new message sent
     _flutterTts.stop();
 
-    final userSettings = ref.read(userSettingsProvider);
     final tr = AppLocalizations.of(context);
-    // ... (Prompt context logic kept same)
+    final languageCode = tr.locale.languageCode;
 
-    // ... (Rest of sendMessage)
+    FocusScope.of(context).unfocus();
+    _promptController.clear();
+
+    ref.read(oracleNotifierProvider.notifier).seekGuidance(text, languageCode);
+    
+    LimitService().incrementOracle();
+  }
+
+  void _showLimitDialog() {
+    final tr = AppLocalizations.of(context);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2C),
+        title: Text(tr.translate('oracle_limit_title'), style: AppTextStyles.h3.copyWith(color: AppTheme.errorRed)),
+        content: Text(tr.translate('oracle_limit_msg'), style: AppTextStyles.bodyMedium),
+        actions: [
+          TextButton(
+            child: Text(tr.translate('btn_understood'), style: const TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(ctx),
+          ),
+        ],
+      ),
+    );
   }
 
 // ...
@@ -165,7 +189,7 @@ class _OracleScreenState extends ConsumerState<OracleScreen> {
                         controller: _scrollController,
                         child: Text(
                           response ?? tr.translate('oracle_placeholder'),
-                          style: AppTextStyles.bodyLarge,
+                          style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, height: 1.5),
                           textAlign: TextAlign.center,
                         ),
                       ),

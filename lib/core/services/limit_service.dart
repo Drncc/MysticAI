@@ -63,7 +63,14 @@ class LimitService {
 
   Future<void> incrementMessage() async {
     _dailyMessageCount++;
-    await _saveState();
+    _saveState();
+  }
+
+  // Aliases for Oracle Screen compatibility
+  bool get canAskOracle => canSendMessage;
+
+  Future<void> incrementOracle() async {
+    await incrementMessage();
   }
 
   Future<void> incrementCard() async {

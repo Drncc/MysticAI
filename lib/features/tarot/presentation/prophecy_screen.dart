@@ -137,10 +137,13 @@ class _ProphecyScreenState extends ConsumerState<ProphecyScreen> {
                      
                      Padding(
                        padding: const EdgeInsets.only(bottom: 10.0),
+                       // TITLE HIDDEN AS REQUESTED
+                       /*
                        child: Text(
                          cardName.toUpperCase(),
                          style: AppTextStyles.h3.copyWith(color: Colors.amber),
                        ),
+                       */
                      ),
                      
                      Text(

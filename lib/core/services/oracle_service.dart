@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:tekno_mistik/core/config/env_config.dart';
 
 class OracleService {
-  final _apiKey = EnvConfig.groqApiKey;
+  // final _apiKey REPLACED by dynamic fetch in methods
   final _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   
   // Model: Llama 3.3 70B (Yüksek zeka, hızlı yanıt)
@@ -223,14 +223,26 @@ GOAL: Make the user feel like a lab subject being analyzed, but present the resu
   }
 
   Future<String> _callGroqApi(String userMessage, String systemPrompt) async {
-    if (_apiKey.isEmpty) return "API Anahtarı eksik [ERR_NO_KEY].";
+    print("--- ORACLE DEBUG START ---");
+    
+    // 1. Check Key
+    final apiKey = EnvConfig.groqApiKey;
+    print("1. API Key Status: ${apiKey.isEmpty ? 'EMPTY (CRITICAL ERROR)' : 'LOADED (Length: ${apiKey.length})'}");
+    
+    if (apiKey.isEmpty) {
+      return "Hata: API Anahtarı bulunamadı (.env yüklenemedi).";
+    }
 
+    print("2. Preparing Request to Groq...");
+    print("   Model: $_model");
+    
     try {
+      final url = Uri.parse(_baseUrl);
       final response = await http.post(
-        Uri.parse(_baseUrl),
+        url,
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
-          'Authorization': 'Bearer $_apiKey',
+          'Authorization': 'Bearer $apiKey',
         },
         body: jsonEncode({
           "model": _model,
@@ -238,20 +250,25 @@ GOAL: Make the user feel like a lab subject being analyzed, but present the resu
             {"role": "system", "content": systemPrompt},
             {"role": "user", "content": userMessage}
           ],
-          "temperature": 0.7,
-          "max_tokens": 150,
+          "temperature": 0.85,
+          "max_tokens": 1024
         }),
       );
 
+      print("3. Response Status Code: ${response.statusCode}");
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
         final content = data['choices'][0]['message']['content'];
+        print("4. SUCCESS! Content received (First 50 chars): ${content.substring(0, content.length > 50 ? 50 : content.length)}...");
         return content ?? "Sessizlik...";
       } else {
-        return "Groq Bağlantı Hatası: ${response.statusCode}";
+        print("CRITICAL API ERROR: ${response.body}");
+        return "API Hatası: ${response.statusCode} - ${response.body}";
       }
     } catch (e) {
-      return "Ağ Hatası: $e";
+      print("EXCEPTION CAUGHT: $e");
+      return "Bağlantı Hatası: $e";
     }
   }
 

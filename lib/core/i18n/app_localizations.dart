@@ -148,6 +148,8 @@ class AppLocalizations {
       'tarot_sun_name': "Güneş", 'tarot_sun_desc': "Pozitiflik, eğlence, sıcaklık, başarı.",
       'tarot_judgement_name': "Mahkeme", 'tarot_judgement_desc': "Yargı, yeniden doğuş, iç çağrı.",
       'tarot_world_name': "Dünya", 'tarot_world_desc': "Tamamlanma, entegrasyon, başarı, seyahat.",
+      'oracle_limit_title': "Kahin Yoruldu",
+      'oracle_limit_msg': "Günlük soru limitine ulaştın. Daha fazlası için kozmik enerjini yükselt.",
       // Store / Cosmic Access
       'store_title': "KOZMİK ERİŞİM",
       'store_subtitle': "Evrenin sırlarına sınırsız erişim sağla.\nKaderini şekillendir.",
@@ -219,6 +221,8 @@ class AppLocalizations {
       'switch_zodiac_comment': "Burç Yorumunu Kehanete Dahil Et",
       'btn_save': "KAYDET",
       'btn_logout': "BAĞLANTIYI KOPAR (ÇIKIŞ)",
+      'oracle_limit_title': "Kahin Yoruldu",
+      'oracle_limit_msg': "Günlük soru limitine ulaştın. Daha fazlası için kozmik enerjini yükselt.",
       // Store / Cosmic Access
       'store_title': "KOZMİK ERİŞİM",
       'store_subtitle': "Evrenin sırlarına sınırsız erişim sağla.\nKaderini şekillendir.",
@@ -304,6 +308,8 @@ class AppLocalizations {
       'tarot_sun_name': "The Sun", 'tarot_sun_desc': "Positivity, fun, warmth, success, vitality.",
       'tarot_judgement_name': "Judgement", 'tarot_judgement_desc': "Judgement, rebirth, inner calling, absolution.",
       'tarot_world_name': "The World", 'tarot_world_desc': "Completion, integration, accomplishment, travel.",
+      'oracle_limit_title': "Oracle Exhausted",
+      'oracle_limit_msg': "Daily question limit reached. Ascend your cosmic energy for more.",
       // Store / Cosmic Access
       'store_title': "COSMIC ACCESS",
       'store_subtitle': "Get unlimited access to the secrets of the universe.",

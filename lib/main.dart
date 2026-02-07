@@ -14,6 +14,8 @@ void main() async {
   
   // Load Env
   await EnvConfig.init();
+  print("--- ENV CONFIG INITIALIZED ---");
+
   
   // Init Supabase
   await Supabase.initialize(

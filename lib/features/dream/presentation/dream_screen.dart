@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
+
 import 'dart:io'; // Platform kontrolü
 import 'package:tekno_mistik/core/services/oracle_service.dart';
 import 'package:tekno_mistik/core/i18n/app_localizations.dart';
@@ -14,7 +14,7 @@ class DreamScreen extends StatefulWidget {
 
 class _DreamScreenState extends State<DreamScreen> {
   final TextEditingController _controller = TextEditingController();
-  final FlutterTts flutterTts = FlutterTts();
+  // TTS REMOVED
   
   bool isAnalyzing = false;
   String? resultText;
@@ -22,22 +22,11 @@ class _DreamScreenState extends State<DreamScreen> {
   @override
   void initState() {
     super.initState();
-    _initTts();
+    // _initTts(); // REMOVED
   }
 
-  Future<void> _initTts() async {
-    // 1. Reset TTS settings
-    await flutterTts.setVolume(1.0);
-    
-    // 2. Platform specific settings
-    if (Platform.isWindows) {
-      await flutterTts.setSpeechRate(1.0); 
-      await flutterTts.setPitch(1.0); 
-    } else {
-      await flutterTts.setSpeechRate(0.5);
-      await flutterTts.setPitch(0.8);
-    }
-  }
+  // _initTts removed
+
 
   void _analyzeDream() async {
     if (_controller.text.isEmpty) return;
@@ -45,8 +34,7 @@ class _DreamScreenState extends State<DreamScreen> {
     final tr = AppLocalizations.of(context);
     final languageCode = tr.locale.languageCode;
     
-    // Set TTS Language
-    await flutterTts.setLanguage(languageCode == 'en' ? "en-US" : "tr-TR");
+    // Set TTS Language - REMOVED
 
     FocusScope.of(context).unfocus();
 
@@ -64,7 +52,7 @@ class _DreamScreenState extends State<DreamScreen> {
           isAnalyzing = false;
           resultText = analysis;
         });
-        _speak(analysis);
+        // _speak(analysis); // REMOVED
       }
     } catch (e) {
       if (mounted) {
@@ -76,16 +64,11 @@ class _DreamScreenState extends State<DreamScreen> {
     }
   }
 
-  Future<void> _speak(String text) async {
-    await flutterTts.stop();
-    if (text.isNotEmpty) {
-      await flutterTts.speak(text);
-    }
-  }
+  // speak method removed
+
 
   @override
   void dispose() {
-    flutterTts.stop();
     _controller.dispose();
     super.dispose();
   }
@@ -171,10 +154,7 @@ class _DreamScreenState extends State<DreamScreen> {
                       style: AppTextStyles.interStyle.copyWith(fontSize: 14, fontStyle: FontStyle.italic),
                     ),
                     const SizedBox(height: 10),
-                    IconButton(
-                      icon: const Icon(Icons.volume_up, color: Colors.white54),
-                      onPressed: () => _speak(resultText!),
-                    )
+                    // TTS Button REMOVED
                   ],
                 ),
               ),
