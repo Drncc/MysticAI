@@ -7,7 +7,7 @@ import 'package:tekno_mistik/features/oracle/presentation/oracle_screen.dart';
 import 'package:tekno_mistik/features/settings/presentation/settings_screen.dart';
 import 'package:tekno_mistik/features/tarot/presentation/prophecy_screen.dart';
 import 'package:tekno_mistik/features/store/presentation/store_screen.dart'; 
-import 'package:tekno_mistik/features/social/presentation/social_screen.dart'; // NEW IMPORT
+
 import 'package:tekno_mistik/features/profile/presentation/providers/user_settings_provider.dart';
 import 'package:tekno_mistik/core/i18n/app_localizations.dart';
 
@@ -27,7 +27,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
     const OracleScreen(),
     const StoreScreen(),
     const ProphecyScreen(),
-    const SocialScreen(), // NEW TAB (Index 4)
+
   ];
 
   @override
@@ -61,7 +61,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
       tr.translate('nav_oracle'),
       tr.translate('nav_store'),
       tr.translate('nav_prophecy'),
-      tr.translate('nav_social'),
+
     ];
 
     return Scaffold(
@@ -188,10 +188,7 @@ class _MainWrapperState extends ConsumerState<MainWrapper> {
                 icon: const Icon(Icons.auto_awesome),
                 label: tr.translate('nav_prophecy'),
               ),
-              BottomNavigationBarItem( // NEW TAB
-                icon: const Icon(Icons.public),
-                label: tr.translate('nav_social'),
-              ),
+
             ],
           ),
         ),
