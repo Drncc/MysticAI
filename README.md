@@ -110,6 +110,8 @@ The output will be located at: build/app/outputs/flutter-apk/app-release.apk
 
     [x] Strict Language Filtering
 
+
+
     [ ] iOS Release (Pending Apple Developer Account)
 
     [ ] Voice-to-Text Integration (Whisper Model)
@@ -119,3 +121,12 @@ The output will be located at: build/app/outputs/flutter-apk/app-release.apk
 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+📸 App Images & Interface Overview
+<img width="1909" height="1003" alt="Screenshot 2026-02-07 191557" src="https://github.com/user-attachments/assets/19d0cd90-544a-447c-b9e4-01db5236ec32" />
+<img width="1916" height="1009" alt="Screenshot 2026-02-07 180622" src="https://github.com/user-attachments/assets/76567328-e3c7-4c8d-8f75-25492e7ae54b" />
+<img width="1912" height="1012" alt="Screenshot 2026-02-07 181558" src="https://github.com/user-attachments/assets/6e036d56-6419-48f6-b684-b1fb637f4472" />
+<img width="1914" height="1012" alt="Screenshot 2026-02-07 180806" src="https://github.com/user-attachments/assets/83eebd16-aaab-424c-8fcd-980b059aaa2e" />
+<img width="1913" height="996" alt="Screenshot 2026-02-07 180821" src="https://github.com/user-attachments/assets/be8c36ec-b90b-475b-9fe3-1446eb6ddc89" />
+<img width="1912" height="997" alt="Screenshot 2026-02-07 180837" src="https://github.com/user-attachments/assets/2de984eb-21b2-4974-b358-ff8033833bb2" />
+
